@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1f6f54">
+<meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -14,124 +15,181 @@
 <title>Inspección Golf</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
+/* Tema claro, sobrio: superficies blancas, bordes finos, un solo color de marca. */
 :root{
-  --bg:#f3f5f4; --card:#ffffff; --text:#14201b; --muted:#66756e; --line:#dfe5e2;
-  --brand:#1f6f54; --brand-2:#e6f2ec; --brand-text:#ffffff;
-  --b:#1f8a4c; --b-bg:#e3f5ea; --m:#c62f2f; --m-bg:#fde8e8; --na:#5b6b80; --na-bg:#e9eef5;
-  --warn:#b7791f; --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.04);
-  --radius:14px;
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --bg:#0f1513; --card:#18211d; --text:#e7efeb; --muted:#93a39b; --line:#2a3631;
-    --brand:#3fae84; --brand-2:#1d2f28; --brand-text:#0b1511;
-    --b:#4cc985; --b-bg:#173226; --m:#ff6b6b; --m-bg:#3a1d1d; --na:#9fb0c6; --na-bg:#222b37;
-    --shadow:none;
-  }
+  color-scheme: light;
+  --bg:#f3f5f7; --surface:#ffffff; --subtle:#f7f8fa; --line:#e2e6ea; --line-2:#cfd5db;
+  --text:#1b2530; --text-2:#4a5562; --muted:#7a8592;
+  --brand:#14594a; --brand-hover:#0f4a3d; --brand-soft:#e9f2ef;
+  --ok:#1d7a4c; --ok-soft:#e7f4ec; --bad:#b42318; --bad-soft:#fdeceb; --na:#5d6b7a; --na-soft:#eef1f4; --warn:#b25e09;
+  --r:10px; --r-sm:8px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased}
 button,input,textarea,select{font:inherit;color:inherit}
-header.top{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
-header.top h1{font-size:18px;margin:0;flex:1;letter-spacing:-.2px}
-header.top h1 small{display:block;font-size:12px;color:var(--muted);font-weight:500}
-.pill{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 10px;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
-.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
-.pill.ok i{background:var(--b)} .pill.error i{background:var(--m)} .pill.sync i{background:var(--warn);animation:blink 1s infinite} .pill.offline i{background:var(--warn)}
-@keyframes blink{50%{opacity:.3}}
-main{padding:14px 16px calc(150px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
-nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
-nav.bottom button{flex:1;background:none;border:0;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);cursor:pointer}
-nav.bottom button svg{width:24px;height:24px}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* Barra superior */
+.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 10px) max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));display:flex;align-items:center;gap:12px}
+.top .ttl{flex:1;min-width:0}
+.top .ttl b{display:block;font-size:16px;font-weight:650;letter-spacing:-.1px}
+.top .ttl span{display:block;font-size:12px;color:var(--muted)}
+.sync{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.sync.ok i{background:var(--ok)} .sync.error i{background:var(--bad)} .sync.wait i{background:var(--warn)} .sync.run i{background:var(--warn);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) calc(150px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:grid;gap:14px}
+
+/* Navegación inferior */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;padding:4px max(6px,env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+nav.bottom button{flex:1;background:none;border:0;padding:7px 0 5px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)}
+nav.bottom svg{width:22px;height:22px}
 nav.bottom button.on{color:var(--brand);font-weight:600}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
-h2{font-size:22px;margin:4px 0 2px;letter-spacing:-.3px}
-h3{font-size:15px;margin:0 0 8px}
-.muted{color:var(--muted)} .small{font-size:13px}
+
+/* Bloques */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;overflow:hidden}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:20px;font-weight:650;margin:0;letter-spacing:-.2px}
+h2{font-size:15px;font-weight:650;margin:0}
+.muted{color:var(--muted)} .small{font-size:13px} .xs{font-size:12px}
+.lbl{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin:0 0 6px}
+.stack{display:grid;gap:12px}
 .row{display:flex;align-items:center;gap:8px}
-.between{justify-content:space-between}
-.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:600;background:var(--brand);color:var(--brand-text);cursor:pointer;width:100%;font-size:16px}
-.btn.sec{background:var(--brand-2);color:var(--brand)}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
-.btn.danger{background:transparent;border:1px solid var(--m);color:var(--m)}
-.btn.sm{padding:8px 12px;font-size:14px;width:auto}
-.link{background:none;border:0;color:var(--brand);font-weight:600;padding:0;cursor:pointer;font-size:14px}
-label.f{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px;font-weight:600}
-input.t,textarea.t,select.t{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 12px;font-size:16px;outline:none;-webkit-appearance:none;appearance:none;min-height:46px}
-input.t:focus,textarea.t:focus{border-color:var(--brand)}
-textarea.t{min-height:76px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tabs{display:flex;background:var(--brand-2);border-radius:12px;padding:4px;gap:4px}
-.tabs button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px;font-weight:600;color:var(--brand);cursor:pointer}
-.tabs button.on{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
-.dots{display:flex;gap:6px;margin:10px 0}
-.dot{flex:1;text-align:center;font-size:11px;color:var(--muted)}
-.dot b{display:block;height:28px;border-radius:8px;margin-bottom:3px;border:2px solid transparent;background:var(--line);font-size:12px;line-height:24px;color:#fff}
-.dot.ok b{background:var(--b)} .dot.mal b{background:var(--m)} .dot.falta b{background:transparent;border:2px dashed var(--m)}
-.dot.hoy b{background:transparent;border:2px solid var(--brand)} .dot.futuro b{opacity:.45}
-.badge{display:inline-block;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:600}
-.badge.ok{background:var(--b-bg);color:var(--b)} .badge.mal{background:var(--m-bg);color:var(--m)} .badge.pend{background:var(--brand-2);color:var(--brand)}
-.insp{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
-.insp .h{font-weight:700;font-variant-numeric:tabular-nums;min-width:48px}
-.insp .n{flex:1;font-size:14px;color:var(--muted)}
-.sec-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--brand);margin:18px 2px 8px}
-.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
-.item.falta{border-color:var(--m);box-shadow:0 0 0 2px var(--m-bg)}
-.item-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
-.item-name{font-size:15px;flex:1;padding-top:4px}
-.foto-btn{display:inline-flex;align-items:center;gap:4px;border:1.5px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;white-space:nowrap;background:var(--card)}
-.foto-btn svg{width:16px;height:16px}
-.foto-btn input{display:none}
-.seg{display:flex;gap:6px}
-.seg button{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:10px 0;font-weight:700;cursor:pointer;font-size:15px}
-.seg button small{display:block;font-size:10px;font-weight:500;opacity:.8}
-.seg button.on.B{background:var(--b);border-color:var(--b);color:#fff}
-.seg button.on.M{background:var(--m);border-color:var(--m);color:#fff}
-.seg button.on.NA{background:var(--na);border-color:var(--na);color:#fff}
-.obs-item{margin-top:8px}
-.fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.grid2>*{min-width:0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--brand);border-radius:var(--r-sm);padding:11px 14px;font-weight:600;font-size:15px;background:var(--brand);color:#fff;width:100%}
+.btn:active{background:var(--brand-hover)}
+.btn.sec{background:var(--surface);color:var(--brand);border-color:var(--line-2)}
+.btn.danger{background:var(--surface);color:var(--bad);border-color:#f0c4bf}
+.btn.sm{width:auto;padding:8px 12px;font-size:14px;white-space:nowrap;flex:none}
+.link{background:none;border:0;padding:0;color:var(--brand);font-weight:600;font-size:14px}
+input.t,textarea.t{width:100%;border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r-sm);padding:10px 12px;font-size:16px;outline:none;-webkit-appearance:none;appearance:none;min-height:44px}
+input.t:focus,textarea.t:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+textarea.t{min-height:84px;resize:vertical}
+
+/* Control segmentado */
+.segc{display:flex;background:var(--subtle);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px;gap:3px}
+.segc button{flex:1;border:0;background:transparent;border-radius:6px;padding:9px 6px;font-weight:600;font-size:14px;color:var(--text-2);line-height:1.2}
+.segc button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(16,24,40,.12)}
+
+/* Chips de estado */
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.pend{background:var(--na-soft);color:var(--na)}
+
+/* Semana en miniatura */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.week div{text-align:center;font-size:11px;color:var(--muted)}
+.week b{display:block;height:8px;border-radius:4px;background:var(--line);margin-bottom:4px}
+.week .ok b{background:var(--ok)} .week .mal b{background:var(--bad)} .week .falta b{background:#f3c9c4}
+.week .hoy{color:var(--text);font-weight:700}
+
+/* Desplegables */
+details.acc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+details.acc>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;user-select:none}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc>summary .st{flex:1;min-width:0}
+details.acc>summary>span{flex:none;display:flex}
+details.acc>summary .st b{display:block;font-size:15px;font-weight:600}
+details.acc>summary .st span{display:block;font-size:12px;color:var(--muted)}
+details.acc>summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:-4px 4px 0 2px;transition:transform .15s}
+details.acc[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+details.acc[open]>summary{border-bottom:1px solid var(--line)}
+.acc-body{padding:4px 14px 14px}
+details[data-key=hoja] .acc-body{padding:12px}
+.done-ic{width:20px;height:20px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;flex:none}
+.done-ic svg{width:12px;height:12px}
+.todo-ic{width:20px;height:20px;border-radius:50%;border:2px solid var(--line-2);flex:none}
+.bad-ic{background:var(--bad)}
+
+/* Ítems del formulario */
+.item{padding:12px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item.falta .iname{color:var(--bad)}
+.item.falta .opts button{border-color:#f0c4bf}
+.iline{display:flex;align-items:center;gap:10px}
+.iname{flex:1;min-width:0;font-size:14px;color:var(--text)}
+.opts{display:flex;gap:4px;flex:none}
+.opts button{width:40px;height:36px;border:1px solid var(--line-2);background:var(--surface);border-radius:7px;font-weight:650;font-size:13px;color:var(--text-2);padding:0}
+.opts button.on.B{background:var(--ok);border-color:var(--ok);color:#fff}
+.opts button.on.M{background:var(--bad);border-color:var(--bad);color:#fff}
+.opts button.on.NA{background:var(--na);border-color:var(--na);color:#fff}
+.opts .cam{position:relative;display:grid;place-items:center;width:36px;color:var(--text-2)}
+.opts .cam svg{width:18px;height:18px}
+.opts .cam input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.opts .cam.has{color:var(--brand);border-color:var(--brand)}
+.extra{display:grid;gap:8px;margin-top:8px}
+.extra:empty{display:none}
+.mini{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2)}
+.tog{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;color:var(--text-2)}
+.tog.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.sec-tools{display:flex;justify-content:flex-end;padding:8px 0 2px}
+
+.fotos{display:flex;gap:6px;flex-wrap:wrap}
 .fotos:empty{display:none}
-.thumb{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;background:var(--bg);border:1px solid var(--line);cursor:zoom-in}
+.thumb{position:relative;width:56px;height:56px;border-radius:7px;overflow:hidden;background:var(--subtle);border:1px solid var(--line)}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.thumb .x{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:14px;line-height:22px;padding:0;cursor:pointer}
-.chips{display:flex;gap:8px;margin-top:8px;align-items:center}
-.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px;cursor:pointer}
-.chip.on{background:var(--brand);border-color:var(--brand);color:var(--brand-text)}
-.savebar{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:25;padding:10px 16px;background:linear-gradient(transparent,var(--bg) 30%)}
-.savebar .in{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center}
-.prog{font-size:13px;color:var(--muted);white-space:nowrap}
-.notice{background:var(--brand-2);color:var(--brand);border-radius:10px;padding:10px 12px;font-size:14px;margin:10px 0}
-.weeknav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.weeknav button{border:1px solid var(--line);background:var(--card);border-radius:10px;width:40px;height:40px;font-size:20px;cursor:pointer}
-.weeknav div{flex:1;text-align:center;font-weight:600}
-.weeknav div small{display:block;font-weight:400;color:var(--muted);font-size:12px}
-.tabla-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card);-webkit-overflow-scrolling:touch}
-table.hoja{border-collapse:collapse;width:100%;font-size:13px;table-layout:fixed}
+.thumb .x{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(17,24,39,.7);color:#fff;font-size:13px;line-height:20px;padding:0}
+
+.progress{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--brand);transition:width .2s}
+
+.savebar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:25;background:var(--surface);border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left))}
+.savebar .in{max-width:720px;margin:0 auto;display:flex;gap:12px;align-items:center}
+.savebar .cnt{font-size:13px;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.who{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--subtle);border:1px solid var(--line);border-radius:var(--r-sm)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.who .n{flex:1;min-width:0;font-size:14px}
+.who .n span{display:block;font-size:12px;color:var(--muted)}
+
+/* Listas */
+.li{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.li .h{font-weight:650;font-variant-numeric:tabular-nums;min-width:46px}
+.li .n{flex:1;min-width:0;font-size:14px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tap{cursor:pointer}
+
+/* Hoja semanal */
+.weeknav{display:flex;align-items:center;gap:8px}
+.weeknav button{border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r-sm);width:38px;height:38px;font-size:18px;color:var(--text-2);flex:none}
+.weeknav button:disabled{opacity:.35}
+.weeknav div{flex:1;text-align:center;font-weight:600;font-size:14px}
+.weeknav small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.tabla-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);-webkit-overflow-scrolling:touch}
+table.hoja{border-collapse:collapse;width:100%;font-size:12.5px;table-layout:fixed}
 table.hoja th,table.hoja td{border-bottom:1px solid var(--line);border-left:1px solid var(--line);padding:6px 2px;text-align:center;overflow:hidden;text-overflow:ellipsis;position:relative}
-table.hoja td.desc,table.hoja th.desc{width:124px;font-size:12px;padding-left:8px;line-height:1.25}
-@media (min-width:600px){table.hoja td.desc,table.hoja th.desc{width:220px;font-size:13px}}
-table.hoja th{font-size:12px;background:var(--brand-2);color:var(--brand);cursor:pointer;line-height:1.2}
-table.hoja th small{display:block;font-weight:500;font-size:10px}
-table.hoja th.g1{background:var(--bg)}
-table.hoja th.hoy{background:var(--brand);color:var(--brand-text)}
-table.hoja .desc{text-align:left;position:sticky;left:0;background:var(--card);border-left:0;z-index:1}
-table.hoja th.desc{background:var(--brand-2);z-index:2}
-table.hoja tr.sec td{background:var(--bg);font-weight:700;text-align:left;font-size:12px;color:var(--brand);padding-left:8px}
-td.vB{color:var(--b);font-weight:700} td.vM{color:#fff;background:var(--m);font-weight:700} td.vNA{color:var(--na);font-weight:600}
-td.cf::after{content:"";position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--warn)}
-td.fut{background:repeating-linear-gradient(45deg,transparent,transparent 4px,var(--bg) 4px,var(--bg) 8px)}
-.list-item{padding:10px 0;border-bottom:1px solid var(--line)} .list-item:last-child{border-bottom:0}
-.stat{background:var(--bg);border-radius:10px;padding:10px}
-.stat b{font-size:22px;display:block}
-.toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;max-width:90vw;text-align:center}
+table.hoja .desc{width:128px;text-align:left;padding-left:10px;position:sticky;left:0;background:var(--surface);border-left:0;z-index:1;line-height:1.25;color:var(--text-2)}
+@media (min-width:600px){table.hoja .desc{width:230px}}
+table.hoja th{font-size:11px;font-weight:600;background:var(--subtle);color:var(--text-2);line-height:1.25;cursor:pointer}
+table.hoja th small{display:block;font-weight:400;color:var(--muted);font-size:10px}
+table.hoja th.desc{background:var(--subtle);z-index:2}
+table.hoja th.hoy{background:var(--brand-soft);color:var(--brand)}
+table.hoja tr.sec td{background:var(--subtle);font-weight:600;text-align:left;font-size:11px;color:var(--muted);padding-left:10px;text-transform:uppercase;letter-spacing:.3px}
+td.vB{color:var(--ok);font-weight:650} td.vM{background:var(--bad-soft);color:var(--bad);font-weight:700} td.vNA{color:var(--muted)}
+td.cf::after{content:"";position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--warn)}
+td.fut{background:var(--subtle)}
+
+.kpi{display:grid;gap:2px}
+.kpi b{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--muted)}
+
+.empty{padding:6px 0;color:var(--muted);font-size:14px}
+.note{font-size:13px;color:var(--text-2);background:var(--brand-soft);border-radius:var(--r-sm);padding:10px 12px}
+
+.toast{position:fixed;left:50%;bottom:calc(130px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:#1b2530;color:#fff;padding:10px 16px;border-radius:var(--r-sm);font-size:14px;opacity:0;transition:.2s;z-index:60;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.center{text-align:center}
-.pin{font-size:28px;letter-spacing:12px;text-align:center}
-#visor{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:70;display:none;align-items:center;justify-content:center;padding:20px}
+.pin{font-size:24px;letter-spacing:10px;text-align:center}
+#visor{position:fixed;inset:0;background:rgba(17,24,39,.94);z-index:70;display:none;align-items:center;justify-content:center;padding:20px}
 #visor.on{display:flex}
-#visor img{max-width:100%;max-height:85vh;border-radius:8px}
-#visor p{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:14px;margin:0}
+#visor img{max-width:100%;max-height:82vh;border-radius:6px}
+#visor p{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:14px;margin:0}
 #print{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media print{
   @page{size:landscape;margin:10mm}
   body *{visibility:hidden}
@@ -144,25 +202,23 @@ td.fut{background:repeating-linear-gradient(45deg,transparent,transparent 4px,va
   #print td.d{text-align:left}
   #print tr.s td{background:#bbb;font-weight:bold;text-align:left}
   #print .hdr{display:flex;justify-content:space-between;margin-bottom:5px}
-  #print .firmas{display:flex;justify-content:space-around;margin-top:22px}
-  #print .firmas div{border-top:1px solid #000;padding-top:4px;min-width:200px;text-align:center}
 }
 </style>
 </head>
 <body>
 <header class="top">
-  <h1>Inspección Golf<small>Carros de golf · FOR-PSB-07</small></h1>
-  <button class="pill" id="syncPill" data-act="sync"><i></i><span>…</span></button>
+  <div class="ttl"><b>Inspección de carros</b><span>Carros de golf · FOR-PSB-07</span></div>
+  <button class="sync" id="syncPill" data-act="sync"><i></i><span>…</span></button>
 </header>
 <main id="main"></main>
 <div id="savebarHost"></div>
 <nav class="bottom" id="nav">
-  <button data-nav="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
-  <button data-nav="form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11l2 2 4-4M9 17h6"/></svg>Registrar</button>
-  <button data-nav="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Semana</button>
-  <button data-nav="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Admin</button>
+  <button data-nav="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+  <button data-nav="form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11.5l2 2 4-4M9 17h6"/></svg>Registrar</button>
+  <button data-nav="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Semana</button>
+  <button data-nav="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Admin</button>
 </nav>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 <div id="visor" data-act="cerrarVisor"><img alt="Foto de evidencia"><p></p></div>
 <div id="print"></div>
 
@@ -183,7 +239,7 @@ const CONFIG = {
 
 /* ================== FORMULARIO (igual al papel) ================== */
 const SECCIONES = [
-  { t: '1. Condiciones externas del vehículo', items: [
+  { t: 'Condiciones externas del vehículo', items: [
     ['motor', 'Estado del motor'],
     ['lat_frente', 'Latonería y pintura frente'],
     ['lat_der', 'Latonería y pintura lado derecho'],
@@ -196,11 +252,11 @@ const SECCIONES = [
     ['suspension', 'Suspensión'],
     ['retrovisores', 'Retrovisores'],
     ['gasolina', 'Nivel del tanque de gasolina']]},
-  { t: '2. Condiciones internas del vehículo', items: [
+  { t: 'Condiciones internas del vehículo', items: [
     ['cojineria', 'Cojinería'],
     ['pisos', 'Pisos'],
     ['techo', 'Techo']]},
-  { t: '3. Condiciones operativas del vehículo', items: [
+  { t: 'Condiciones operativas del vehículo', items: [
     ['aceite', 'Aceite'],
     ['bateria', 'Batería'],
     ['pito', 'Pito'],
@@ -210,7 +266,7 @@ const SECCIONES = [
     ['aseo', 'Condiciones de aseo'],
     ['desinfeccion', 'Desinfección am - pm'],
     ['conoc_desinf', 'Conocimiento de: desinfectar el carro cada vez que sea utilizado nuevamente por otro usuario']]},
-  { t: '4. Elementos de seguridad', items: [
+  { t: 'Elementos de seguridad', items: [
     ['extintor', 'Extintor']]}
 ];
 const ITEMS = SECCIONES.flatMap(s => s.items);
@@ -221,7 +277,8 @@ const quien = r => `${r.camarero || ''}${r.cargo ? ' · ' + r.cargo : ''}`;
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const DIAS_C = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-const ICO_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>';
+const ICO_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>';
+const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 /* ================== UTILIDADES ================== */
 const $ = s => document.querySelector(s);
@@ -236,10 +293,11 @@ const diaNum = d => ((d.getDay() + 6) % 7) + 1;           // 1 = lunes ... 7 = d
 const lunesISO = d => toISO(addDays(d, -(diaNum(d) - 1)));
 const fechasSemana = lunes => Array.from({length: 7}, (_, i) => toISO(addDays(parseISO(lunes), i)));
 const fmtC = iso => { const d = parseISO(iso); return `${d.getDate()} ${MESES[d.getMonth()]}`; };
-const fmtL = iso => { const d = parseISO(iso); return `${DIAS[diaNum(d) - 1]} ${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`; };
+const fmtL = iso => { const d = parseISO(iso); return `${DIAS[diaNum(d) - 1]} ${d.getDate()} ${MESES[d.getMonth()]}`; };
 const hora12 = hm => { if (!hm) return '—'; const [h, m] = hm.split(':').map(Number); return `${((h + 11) % 12) + 1}:${pad(m)} ${h < 12 ? 'a. m.' : 'p. m.'}`; };
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 const iniciales = n => (n || '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+const plural = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 const store = {
   get(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
@@ -260,7 +318,7 @@ const fotosDB = (() => {
   const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => {
     const t = db.transaction('f', mode); const req = fn(t.objectStore('f'));
     t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error); }); };
-  return { get: k => tx('readonly', s => s.get(k)).catch(() => null), set: (k, v) => tx('readwrite', s => s.put(v, k)), del: k => tx('readwrite', s => s.delete(k)).catch(() => {}) };
+  return { get: k => tx('readonly', s => s.get(k)).catch(() => null), set: (k, v) => tx('readwrite', s => s.put(v, k)) };
 })();
 const fotoCache = {};
 async function srcFoto(f) {
@@ -312,25 +370,27 @@ const S = {
   carroSemana: CONFIG.CARROS[0],
   draft: null,
   dirty: false,
+  abiertas: new Set([0]),
   admin: sessionStorage.getItem('ig_admin') === '1',
   ultimaSync: store.get('ig_lastsync', null)
 };
 const activos = () => Object.values(DB).filter(r => !r.eliminado);
 const recsDia = (carro, fecha) => activos().filter(r => r.carro === carro && r.fecha === fecha).sort((a, b) => (a.hora || '') < (b.hora || '') ? -1 : 1);
-const recsSemana = (lunes, carro) => activos().filter(r => r.semana === lunes && (!carro || r.carro === carro));
+const recsSemana = (lunes, carro) => activos().filter(r => r.semana === lunes && (!carro || r.carro === carro)).sort((a, b) => (a.fecha + a.hora) < (b.fecha + b.hora) ? -1 : 1);
 const tieneM = r => Object.values(r.items || {}).includes('M');
+const nM = r => Object.values(r.items || {}).filter(v => v === 'M').length;
 const nFotos = r => Object.values(r.fotos || {}).reduce((n, a) => n + a.length, 0);
 const pendientes = () => Object.values(DB).filter(r => r._pending).length;
 
 /* ================== SINCRONIZACIÓN ================== */
 let syncing = false, otraVez = false;
-function setSync(cls, txt) { const p = $('#syncPill'); p.className = 'pill ' + cls; p.querySelector('span').textContent = txt; }
+function setSync(cls, txt) { const p = $('#syncPill'); p.className = 'sync ' + cls; p.querySelector('span').textContent = txt; }
 function pintarSync() {
   const n = pendientes();
   if (!conectado()) return setSync('', 'Solo local');
-  if (!navigator.onLine) return setSync('offline', n ? `Sin red · ${n} pend.` : 'Sin red');
-  if (n) return setSync('offline', `${n} pendiente${n > 1 ? 's' : ''}`);
-  setSync('ok', 'Sincronizado');
+  if (!navigator.onLine) return setSync('wait', n ? `Sin red · ${n}` : 'Sin red');
+  if (n) return setSync('wait', `${n} por enviar`);
+  setSync('ok', 'Al día');
 }
 const limpio = r => { const c = JSON.parse(JSON.stringify(r)); delete c._pending; delete c._existe; return c; };
 /* Base conjunta: una tabla "registros" en Supabase (id text PK, tipo, semana, datos) */
@@ -376,10 +436,10 @@ async function subirFotos(rec) {
   }
 }
 async function sync(todo = false, avisar = false) {
-  if (!conectado()) { pintarSync(); if (avisar) toast('Sin base conjunta configurada: los datos quedan en este celular'); return; }
+  if (!conectado()) { pintarSync(); if (avisar) toast('Sin base conjunta: los datos quedan en este celular'); return; }
   if (!navigator.onLine) { pintarSync(); if (avisar) toast('Sin conexión. Se enviará al volver la red'); return; }
   if (syncing) { otraVez = true; return; }
-  syncing = true; otraVez = false; setSync('sync', 'Sincronizando…');
+  syncing = true; otraVez = false; setSync('run', 'Sincronizando');
   try {
     const pend = Object.values(DB).filter(r => r._pending);
     for (const r of pend) await subirFotos(r);
@@ -398,139 +458,149 @@ async function sync(todo = false, avisar = false) {
     persist();
     S.ultimaSync = new Date().toISOString(); store.set('ig_lastsync', S.ultimaSync);
     pintarSync();
-    if (avisar) toast('Datos sincronizados');
-    if (S.view !== 'form') render();
+    if (avisar) toast('Datos al día');
+    if (S.view !== 'form' && S.view !== 'perfil') render(true);
   } catch (e) {
-    console.warn(e); setSync('error', 'Error de sync');
+    console.warn(e); setSync('error', 'Error');
     if (avisar) toast('No se pudo sincronizar: ' + e.message);
   } finally { syncing = false; if (otraVez) setTimeout(() => sync(todo), 300); }
 }
 
-/* ================== VISTAS ================== */
-function vBienvenida() {
-  const editando = !!(ME.nombre && ME.cargo);
-  return `<div class="card" style="margin-top:20px">
-    <h2>${editando ? 'Tus datos' : 'Bienvenido'}</h2>
-    <p class="muted">Se guardan en este celular y aparecen en cada inspección que registres.</p>
-    <label class="f">Cargo</label>
-    <div class="tabs" id="cargoSel">${CARGOS.map(c => `<button type="button" class="${S.cargoTmp === c ? 'on' : ''}" data-act="elegirCargo" data-cargo="${esc(c)}">${esc(c)}</button>`).join('')}</div>
-    <label class="f" for="nombreIn">Nombre</label>
-    <input class="t" id="nombreIn" autocomplete="name" placeholder="Ej: Juan Pérez" value="${esc(ME.nombre)}">
-    <div style="height:12px"></div>
-    <button class="btn" data-act="guardarNombre">${editando ? 'Guardar' : 'Continuar'}</button>
-    ${editando ? '<div style="height:8px"></div><button class="btn ghost" data-act="cancelarPerfil">Cancelar</button>' : ''}
-  </div>`;
-}
-
-function dotsCarro(carro, lunes) {
+/* ================== PIEZAS DE INTERFAZ ================== */
+const segc = (vals, actual, act, id) => `<div class="segc"${id ? ` id="${id}"` : ''}>${vals.map(v => `<button type="button" class="${v === actual ? 'on' : ''}" data-act="${act}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
+function semanaMini(carro, lunes) {
   const h = toISO(hoy());
-  return `<div class="dots">${fechasSemana(lunes).map((f, i) => {
+  return `<div class="week">${fechasSemana(lunes).map((f, i) => {
     const rs = recsDia(carro, f);
-    const cls = rs.length ? (rs.some(tieneM) ? 'mal' : 'ok') : f > h ? 'futuro' : f === h ? 'hoy' : 'falta';
-    return `<div class="dot ${cls}"><b>${rs.length > 1 ? rs.length : ''}</b>${['L', 'M', 'Mi', 'J', 'V', 'S', 'D'][i]}</div>`;
+    const cls = rs.length ? (rs.some(tieneM) ? 'mal' : 'ok') : f < h ? 'falta' : '';
+    return `<div class="${cls}${f === h ? ' hoy' : ''}"><b></b>${DIAS_C[i].slice(0, 1)}${i === 2 ? 'i' : ''}</div>`;
   }).join('')}</div>`;
 }
-const filaInsp = r => `<div class="insp" data-act="editar" data-id="${esc(r.id)}">
+const estadoChip = r => tieneM(r) ? `<span class="chip bad">${plural(nM(r), 'novedad', 'novedades')}</span>` : '<span class="chip ok">Sin novedades</span>';
+const filaInsp = (r, conFecha) => `<div class="li tap" data-act="editar" data-id="${esc(r.id)}">
   <span class="h">${esc(r.hora || '—')}</span>
-  <span class="n">${esc(quien(r))}${nFotos(r) ? ` · ${nFotos(r)} foto${nFotos(r) > 1 ? 's' : ''}` : ''}</span>
-  ${tieneM(r) ? '<span class="badge mal">Novedades</span>' : '<span class="badge ok">OK</span>'}</div>`;
-
-function vInicio() {
-  const h = toISO(hoy()), lunes = lunesISO(hoy());
-  return `
-  <div class="row between"><div>
-    <div class="muted small">Hola,</div>
-    <h2>${esc(ME.nombre)}</h2>
-    <div class="small muted">${esc(ME.cargo || '')}</div>
-  </div><button class="link" data-act="cambiarNombre">Cambiar</button></div>
-  <div class="notice">Hoy es <b>${fmtL(h)}</b> · <b>Día ${diaNum(hoy())}</b><br><span class="small">Semana del ${fmtC(lunes)} al ${fmtC(fechasSemana(lunes)[6])}</span></div>
-  ${CONFIG.CARROS.map(c => {
-    const rs = recsDia(c, h);
-    const nov = recsSemana(lunes, c).reduce((n, x) => n + Object.values(x.items || {}).filter(v => v === 'M').length, 0);
-    return `<div class="card">
-      <div class="row between"><h3 style="margin:0">Carro ${esc(c)}</h3>
-        ${rs.length ? `<span class="badge ${rs.some(tieneM) ? 'mal' : 'ok'}">Hoy: ${rs.length} inspección${rs.length > 1 ? 'es' : ''}</span>` : '<span class="badge pend">Hoy: pendiente</span>'}
-      </div>
-      ${dotsCarro(c, lunes)}
-      ${nov ? `<div class="small" style="color:var(--m);margin-bottom:6px">${nov} ítem${nov > 1 ? 's' : ''} en mal estado esta semana</div>` : ''}
-      ${rs.length ? `<div style="margin-bottom:10px">${rs.map(filaInsp).join('')}</div>` : ''}
-      <div class="row">
-        <button class="btn" data-act="nuevo" data-carro="${esc(c)}">Nueva inspección</button>
-        <button class="btn ghost sm" data-act="verSemana" data-carro="${esc(c)}">Semana</button>
-      </div>
-    </div>`;
-  }).join('')}
-  <p class="small muted center">Verde: buen estado · Rojo: con novedades · Punteado: día sin registro · El número indica varias inspecciones ese día</p>`;
-}
-
-function vForm() {
-  const d = S.draft;
-  return `
-  <h2>${d._existe ? 'Editar inspección' : 'Nueva inspección'}</h2>
-  <div class="tabs" style="margin-top:10px">${CONFIG.CARROS.map(c => `<button class="${c === d.carro ? 'on' : ''}" data-act="formCarro" data-carro="${esc(c)}">${esc(c)}</button>`).join('')}</div>
-  <div class="card" style="margin-top:12px">
-    <div class="grid2">
-      <div><label class="f" style="margin-top:0">Fecha</label>
-        <input class="t" type="date" id="fFecha" value="${d.fecha}" max="${toISO(hoy())}"></div>
-      <div><label class="f" style="margin-top:0">Hora</label>
-        <input class="t" type="time" id="fHora" data-field="hora" value="${esc(d.hora)}"></div>
-    </div>
-    <div class="small" style="margin-top:6px"><b>Día ${d.dia}</b> · ${DIAS[d.dia - 1]} · Semana del ${fmtC(d.semana)} al ${fmtC(fechasSemana(d.semana)[6])}</div>
-    <label class="f">Cargo</label>
-    <div class="tabs">${CARGOS.map(c => `<button type="button" class="${d.cargo === c ? 'on' : ''}" data-act="formCargo" data-cargo="${esc(c)}">${esc(c)}</button>`).join('')}</div>
-    <label class="f" for="fCamarero">Nombre</label>
-    <input class="t" id="fCamarero" data-field="camarero" value="${esc(d.camarero)}" placeholder="Nombre completo">
-  </div>
-  ${d._existe ? `<div class="notice">Editando la inspección de las ${hora12(d.hora)} hecha por ${esc(quien(d))}.</div>` : ''}
-  <div class="row between" style="margin-top:6px">
-    <span class="small muted">B: Bueno · M: Malo · NA: No aplica</span>
-    <button class="link" data-act="todoB">Todo lo pendiente en B</button>
-  </div>
-  ${SECCIONES.map(s => `<div class="sec-title">${s.t}</div>` + s.items.map(([id, lab]) => itemHTML(id, lab, d)).join('')).join('')}
-  <div class="sec-title">Observaciones y firmas</div>
-  <div class="card">
-    <label class="f" style="margin-top:0">Observaciones generales (opcional)</label>
-    <textarea class="t" data-field="obs" placeholder="Cualquier novedad del carro…">${esc(d.obs)}</textarea>
-    <label class="f">Gestor de alojamiento</label>
-    <input class="t" data-field="gestor" value="${esc(d.gestor)}" placeholder="Nombre">
-    <label class="f">Conductor</label>
-    <input class="t" data-field="conductor" value="${esc(d.conductor)}" placeholder="Nombre">
-  </div>
-  ${d._existe ? `<button class="btn danger" data-act="eliminar">Eliminar esta inspección</button>` : ''}`;
-}
-const fotosItemHTML = (id, d) => (d.fotos[id] || []).map(f => thumbHTML(f, id, LABEL[id])).join('');
-function itemHTML(id, lab, d) {
-  const v = d.items[id];
-  return `<div class="item" id="it-${id}">
-    <div class="item-head"><div class="item-name">${esc(lab)}</div>
-      <label class="foto-btn">${ICO_CAM}Foto<input type="file" accept="image/*" multiple data-fotoitem="${id}"></label></div>
-    <div class="seg">${VALS.map(([k, n]) => `<button class="${k}${v === k ? ' on' : ''}" data-act="val" data-id="${id}" data-v="${k}">${k === 'NA' ? 'N/A' : k}<small>${n}</small></button>`).join('')}</div>
-    ${id === 'desinfeccion' ? `<div class="chips"><span class="small muted">Realizada:</span>
-      <button class="chip${d.desinfAM ? ' on' : ''}" data-act="desinf" data-k="desinfAM">AM</button>
-      <button class="chip${d.desinfPM ? ' on' : ''}" data-act="desinf" data-k="desinfPM">PM</button></div>` : ''}
-    <input class="t obs-item" data-obs="${id}" value="${esc(d.obsItems[id] || '')}" placeholder="¿Qué está mal? (opcional)" ${v === 'M' ? '' : 'hidden'}>
-    <div class="fotos" id="fotos-${id}">${fotosItemHTML(id, d)}</div>
-  </div>`;
-}
-function savebarHTML() {
-  const n = ITEMS.filter(([id]) => S.draft.items[id]).length;
-  return `<div class="savebar"><div class="in">
-    <span class="prog" id="prog">${n}/${ITEMS.length}</span>
-    <button class="btn" data-act="guardar">Guardar inspección</button>
-  </div></div>`;
-}
-
+  <span class="n">${conFecha ? `${DIAS_C[r.dia - 1]} ${parseISO(r.fecha).getDate()} · ` : ''}${esc(r.camarero)}${nFotos(r) ? ` · ${plural(nFotos(r), 'foto', 'fotos')}` : ''}</span>
+  ${estadoChip(r)}</div>`;
 function weekNav() {
   const f = fechasSemana(S.semana);
   const actual = S.semana === lunesISO(hoy());
   return `<div class="weeknav">
     <button data-act="semPrev" aria-label="Semana anterior">‹</button>
-    <div>Semana del ${fmtC(f[0])} al ${fmtC(f[6])}<small>${actual ? 'Semana actual' : parseISO(f[0]).getFullYear()}</small></div>
-    <button data-act="semNext" aria-label="Semana siguiente" ${actual ? 'disabled style="opacity:.3"' : ''}>›</button>
+    <div>${fmtC(f[0])} – ${fmtC(f[6])}<small>${actual ? 'Semana actual' : parseISO(f[0]).getFullYear()}</small></div>
+    <button data-act="semNext" aria-label="Semana siguiente" ${actual ? 'disabled' : ''}>›</button>
+  </div>`;
+}
+const acc = (key, titulo, sub, cuerpo, abierto, icono = '') => `<details class="acc" data-key="${key}"${abierto ? ' open' : ''}>
+  <summary>${icono}<div class="st"><b>${titulo}</b>${sub ? `<span>${sub}</span>` : ''}</div></summary>
+  <div class="acc-body">${cuerpo}</div></details>`;
+
+/* ================== VISTAS ================== */
+function vPerfil() {
+  const editando = !!(ME.nombre && ME.cargo);
+  return `<div class="card stack" style="margin-top:8px">
+    <div><h1>${editando ? 'Tus datos' : 'Bienvenido'}</h1>
+      <p class="small muted" style="margin:4px 0 0">Se guardan en este celular y se usan en cada inspección que registres.</p></div>
+    <div><span class="lbl">Cargo</span>${segc(CARGOS, S.cargoTmp, 'elegirCargo', 'cargoSel')}</div>
+    <div><label class="lbl" for="nombreIn">Nombre completo</label>
+      <input class="t" id="nombreIn" autocomplete="name" placeholder="Ej: Juan Pérez" value="${esc(ME.nombre)}"></div>
+    <button class="btn" data-act="guardarPerfil">${editando ? 'Guardar' : 'Continuar'}</button>
+    ${editando ? '<button class="btn sec" data-act="cancelarPerfil">Cancelar</button>' : ''}
   </div>`;
 }
 
-/* Columnas de la hoja: una por inspección (agrupadas por día); día sin registro = columna vacía */
+function vInicio() {
+  const h = toISO(hoy()), lunes = lunesISO(hoy());
+  return `
+  <div class="who">
+    <div class="avatar">${esc(iniciales(ME.nombre))}</div>
+    <div class="n"><b>${esc(ME.nombre)}</b><span>${esc(ME.cargo)}</span></div>
+    <button class="link" data-act="perfil">Cambiar</button>
+  </div>
+  <div class="head"><h1>${fmtL(h)}</h1><span class="small muted">Día ${diaNum(hoy())} de 7</span></div>
+  ${CONFIG.CARROS.map(c => {
+    const rs = recsDia(c, h);
+    return `<div class="card stack">
+      <div class="head"><h2>Carro ${esc(c)}</h2>
+        ${rs.length ? (rs.some(tieneM) ? `<span class="chip bad">Hoy con novedades</span>` : `<span class="chip ok">Hoy: ${plural(rs.length, 'inspección', 'inspecciones')}</span>`) : '<span class="chip pend">Hoy sin inspección</span>'}
+      </div>
+      ${semanaMini(c, lunes)}
+      <div class="row">
+        <button class="btn" data-act="nuevo" data-carro="${esc(c)}">Nueva inspección</button>
+        <button class="btn sec sm" data-act="verSemana" data-carro="${esc(c)}">Ver semana</button>
+      </div>
+      ${rs.length ? `<details class="acc" data-key="hoy${esc(c)}" style="border:0;margin:0 -14px -14px;border-top:1px solid var(--line);border-radius:0">
+        <summary><div class="st"><b style="font-size:14px">Inspecciones de hoy (${rs.length})</b></div></summary>
+        <div class="acc-body">${rs.map(r => filaInsp(r)).join('')}</div></details>` : ''}
+    </div>`;
+  }).join('')}
+  <p class="xs muted" style="margin:0">Barras de la semana: verde sin novedades · rojo con novedades · rosado día sin registro.</p>`;
+}
+
+/* ---------- Formulario ---------- */
+const respondidosSec = (s, d) => s.items.filter(([id]) => d.items[id]).length;
+function iconoSec(s, d) {
+  const n = respondidosSec(s, d);
+  if (n < s.items.length) return '<span class="todo-ic"></span>';
+  return `<span class="done-ic${s.items.some(([id]) => d.items[id] === 'M') ? ' bad-ic' : ''}">${ICO_OK}</span>`;
+}
+function subSec(s, d) {
+  const n = respondidosSec(s, d), m = s.items.filter(([id]) => d.items[id] === 'M').length;
+  return `${n} de ${s.items.length}${m ? ` · ${plural(m, 'novedad', 'novedades')}` : ''}`;
+}
+function vForm() {
+  const d = S.draft;
+  return `
+  <h1>${d._existe ? 'Editar inspección' : 'Nueva inspección'}</h1>
+  <div class="card stack">
+    <div><span class="lbl">Carro</span>${segc(CONFIG.CARROS, d.carro, 'formCarro')}</div>
+    <div class="grid2">
+      <div><label class="lbl" for="fFecha">Fecha</label><input class="t" type="date" id="fFecha" value="${d.fecha}" max="${toISO(hoy())}"></div>
+      <div><label class="lbl" for="fHora">Hora</label><input class="t" type="time" id="fHora" data-field="hora" value="${esc(d.hora)}"></div>
+    </div>
+    <div class="xs muted">Día ${d.dia} · ${DIAS[d.dia - 1]} · semana del ${fmtC(d.semana)} al ${fmtC(fechasSemana(d.semana)[6])}</div>
+    <div class="who"><div class="avatar">${esc(iniciales(d.camarero))}</div>
+      <div class="n">${esc(d.camarero)}<span>${esc(d.cargo || '')}${d._existe ? ' · registró esta inspección' : ''}</span></div></div>
+  </div>
+  <div class="progress" aria-hidden="true"><i id="progBar" style="width:${Math.round(ITEMS.filter(([id]) => d.items[id]).length / ITEMS.length * 100)}%"></i></div>
+  ${SECCIONES.map((s, i) => `<details class="acc" data-sec="${i}"${S.abiertas.has(i) ? ' open' : ''}>
+    <summary><span id="sic-${i}">${iconoSec(s, d)}</span><div class="st"><b>${i + 1}. ${s.t}</b><span id="ssub-${i}">${subSec(s, d)}</span></div></summary>
+    <div class="acc-body">
+      <div class="sec-tools"><button class="link" data-act="seccionB" data-sec="${i}">Marcar pendientes como B</button></div>
+      ${s.items.map(([id, lab]) => itemHTML(id, lab, d)).join('')}
+    </div></details>`).join('')}
+  ${acc('obs', 'Observaciones', 'Opcional', `<textarea class="t" data-field="obs" aria-label="Observaciones" placeholder="Cualquier novedad general del carro">${esc(d.obs)}</textarea>`, !!d.obs)}
+  <div class="xs muted">B: bueno · M: malo · N/A: no aplica. Al marcar M puedes describir el daño. El ícono de cámara adjunta fotos.</div>
+  ${d._existe ? `<button class="btn danger" data-act="eliminar">Eliminar inspección</button>` : ''}`;
+}
+const fotosItemHTML = (id, d) => (d.fotos[id] || []).map(f => thumbHTML(f, id, LABEL[id])).join('');
+function extraHTML(id, d) {
+  const v = d.items[id];
+  let h = '';
+  if (id === 'desinfeccion') h += `<div class="mini">Realizada:
+      <button class="tog${d.desinfAM ? ' on' : ''}" data-act="desinf" data-k="desinfAM">AM</button>
+      <button class="tog${d.desinfPM ? ' on' : ''}" data-act="desinf" data-k="desinfPM">PM</button></div>`;
+  if (v === 'M') h += `<input class="t" data-obs="${id}" value="${esc(d.obsItems[id] || '')}" placeholder="Describe el daño (opcional)" aria-label="Detalle de ${esc(LABEL[id])}">`;
+  if ((d.fotos[id] || []).length) h += `<div class="fotos" id="fotos-${id}">${fotosItemHTML(id, d)}</div>`;
+  return h;
+}
+function itemHTML(id, lab, d) {
+  const v = d.items[id], nf = (d.fotos[id] || []).length;
+  return `<div class="item" id="it-${id}">
+    <div class="iline"><div class="iname">${esc(lab)}</div>
+      <div class="opts">${VALS.map(([k, n]) => `<button class="${k}${v === k ? ' on' : ''}" data-act="val" data-id="${id}" data-v="${k}" aria-label="${n}">${k === 'NA' ? 'N/A' : k}</button>`).join('')}
+        <label class="cam${nf ? ' has' : ''}" aria-label="Agregar foto">${ICO_CAM}<input type="file" accept="image/*" multiple data-fotoitem="${id}"></label></div></div>
+    <div class="extra" id="ex-${id}">${extraHTML(id, d)}</div>
+  </div>`;
+}
+function savebarHTML() {
+  const n = ITEMS.filter(([id]) => S.draft.items[id]).length;
+  return `<div class="savebar"><div class="in">
+    <span class="cnt" id="prog">${n} de ${ITEMS.length}</span>
+    <button class="btn" data-act="guardar">${S.draft._existe ? 'Guardar cambios' : 'Guardar inspección'}</button>
+  </div></div>`;
+}
+
+/* ---------- Hoja semanal ---------- */
 const columnas = (carro, lunes) => fechasSemana(lunes).flatMap((f, i) => {
   const rs = recsDia(carro, f);
   return rs.length ? rs.map(r => ({ f, i, r })) : [{ f, i, r: null }];
@@ -544,149 +614,176 @@ function tablaSemana(carro, lunes) {
     const foto = (c.r.fotos && c.r.fotos[id] && c.r.fotos[id].length) ? ' cf' : '';
     return `<td class="v${v}${foto}">${v === 'NA' ? 'N/A' : v}</td>`;
   };
-  let html = `<div class="tabla-wrap"><table class="hoja" style="min-width:${124 + cols.length * 44}px"><thead><tr><th class="desc">Descripción</th>${cols.map(c =>
-    `<th class="g${c.i % 2}${c.f === h ? ' hoy' : ''}" data-act="${c.r ? 'editar' : c.f > h ? '' : 'nuevo'}" data-id="${c.r ? esc(c.r.id) : ''}" data-carro="${esc(carro)}" data-fecha="${c.f}">Día ${c.i + 1}<small>${DIAS_C[c.i]} ${parseISO(c.f).getDate()}</small><small>${c.r ? esc(c.r.hora || '') : '&nbsp;'}</small></th>`).join('')}</tr></thead><tbody>`;
   const span = cols.length + 1;
-  SECCIONES.forEach(s => {
-    html += `<tr class="sec"><td colspan="${span}">${esc(s.t)}</td></tr>`;
+  let html = `<div class="tabla-wrap"><table class="hoja" style="min-width:${128 + cols.length * 46}px"><thead><tr><th class="desc">Descripción</th>${cols.map(c =>
+    `<th class="${c.f === h ? 'hoy' : ''}" data-act="${c.r ? 'editar' : c.f > h ? '' : 'nuevo'}" data-id="${c.r ? esc(c.r.id) : ''}" data-carro="${esc(carro)}" data-fecha="${c.f}">Día ${c.i + 1}<small>${DIAS_C[c.i]} ${parseISO(c.f).getDate()}</small><small>${c.r ? esc(c.r.hora || '') : '&nbsp;'}</small></th>`).join('')}</tr></thead><tbody>`;
+  SECCIONES.forEach((s, si) => {
+    html += `<tr class="sec"><td colspan="${span}">${si + 1}. ${esc(s.t)}</td></tr>`;
     s.items.forEach(([id, lab]) => {
       html += `<tr><td class="desc">${esc(lab)}</td>${cols.map(c => celda(c, id)).join('')}</tr>`;
-      if (id === 'desinfeccion') html += `<tr><td class="desc small muted">↳ Realizada AM / PM</td>${cols.map(c => c.r ? `<td class="small">${[c.r.desinfAM && 'AM', c.r.desinfPM && 'PM'].filter(Boolean).join(' ') || '—'}</td>` : vacia(c)).join('')}</tr>`;
+      if (id === 'desinfeccion') html += `<tr><td class="desc xs muted">Realizada AM / PM</td>${cols.map(c => c.r ? `<td class="xs">${[c.r.desinfAM && 'AM', c.r.desinfPM && 'PM'].filter(Boolean).join(' ') || '—'}</td>` : vacia(c)).join('')}</tr>`;
     });
   });
-  html += `<tr class="sec"><td colspan="${span}">Responsable</td></tr><tr><td class="desc">Registró</td>${cols.map(c => c.r ? `<td class="small" title="${esc(quien(c.r))}">${esc(iniciales(c.r.camarero))}</td>` : vacia(c)).join('')}</tr>`;
+  html += `<tr class="sec"><td colspan="${span}">Responsable</td></tr><tr><td class="desc">Iniciales</td>${cols.map(c => c.r ? `<td class="xs" title="${esc(quien(c.r))}">${esc(iniciales(c.r.camarero))}</td>` : vacia(c)).join('')}</tr>`;
   return html + `</tbody></table></div>`;
 }
-function observacionesSemana(carro, lunes) {
-  const recs = fechasSemana(lunes).flatMap(f => recsDia(carro, f));
-  const lines = recs.map(r => {
-    const nov = ITEMS.filter(([id]) => r.items[id] === 'M').map(([id, lab]) => `<b style="color:var(--m)">${esc(lab)}</b>${r.obsItems && r.obsItems[id] ? ': ' + esc(r.obsItems[id]) : ''}`);
-    const fotos = Object.entries(r.fotos || {}).flatMap(([id, arr]) => arr.map(f => thumbHTML(f, null, `${LABEL[id]} · ${r.carro} · ${fmtC(r.fecha)} ${r.hora || ''}`)));
-    if (!nov.length && !r.obs && !fotos.length) return '';
-    return `<div class="list-item"><div class="small muted">Día ${r.dia} · ${fmtL(r.fecha)} · ${esc(r.hora || '')} · ${esc(quien(r))}</div>
-      ${nov.length ? `<div class="small">${nov.join(' · ')}</div>` : ''}${r.obs ? `<div class="small">“${esc(r.obs)}”</div>` : ''}
-      ${fotos.length ? `<div class="fotos">${fotos.join('')}</div>` : ''}</div>`;
-  }).filter(Boolean);
-  const firm = recs.slice().reverse();
-  const g = (firm.find(r => r.gestor) || {}).gestor, c = (firm.find(r => r.conductor) || {}).conductor;
-  return `<div class="card" style="margin-top:12px"><h3>Novedades, observaciones y fotos</h3>
-    ${lines.length ? lines.join('') : '<div class="small muted">Sin novedades esta semana.</div>'}
-    <div class="grid2" style="margin-top:12px"><div class="stat"><span class="small muted">Gestor alojamiento</span><div>${esc(g || '—')}</div></div>
-    <div class="stat"><span class="small muted">Conductor</span><div>${esc(c || '—')}</div></div></div></div>`;
+function detalleInsp(r) {
+  const nov = ITEMS.filter(([id]) => r.items[id] === 'M');
+  const fotos = Object.entries(r.fotos || {}).flatMap(([id, arr]) => arr.map(f => thumbHTML(f, null, `${LABEL[id]} · ${r.carro} · ${fmtC(r.fecha)} ${r.hora || ''}`)));
+  return `<div class="stack" style="gap:8px;padding-top:8px">
+    <div class="small muted">${esc(quien(r))}</div>
+    ${nov.length ? `<div class="small">${nov.map(([id, lab]) => `<div><b style="color:var(--bad)">${esc(lab)}</b>${r.obsItems && r.obsItems[id] ? ': ' + esc(r.obsItems[id]) : ''}</div>`).join('')}</div>` : '<div class="small muted">Todos los ítems en buen estado o no aplica.</div>'}
+    ${r.obs ? `<div class="small">Observaciones: ${esc(r.obs)}</div>` : ''}
+    ${fotos.length ? `<div class="fotos">${fotos.join('')}</div>` : ''}
+    <div><button class="btn sec sm" data-act="editar" data-id="${esc(r.id)}">Abrir inspección</button></div>
+  </div>`;
+}
+function listaInspecciones(recs) {
+  if (!recs.length) return '<div class="empty">No hay inspecciones esta semana.</div>';
+  return recs.map(r => `<details class="acc" data-key="i${esc(r.id)}" style="border:0;border-top:1px solid var(--line);border-radius:0;margin:0 -14px">
+    <summary><div class="st"><b style="font-size:14px">${DIAS_C[r.dia - 1]} ${parseISO(r.fecha).getDate()} · ${esc(r.hora || '')}</b><span>${esc(r.camarero)}${nFotos(r) ? ' · ' + plural(nFotos(r), 'foto', 'fotos') : ''}</span></div>${estadoChip(r)}</summary>
+    <div class="acc-body">${detalleInsp(r)}</div></details>`).join('');
 }
 function vSemana() {
-  return `<h2>Hoja semanal</h2>
-  <div class="tabs" style="margin:10px 0 12px">${CONFIG.CARROS.map(c => `<button class="${c === S.carroSemana ? 'on' : ''}" data-act="semCarro" data-carro="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+  const recs = recsSemana(S.semana, S.carroSemana);
+  const conNov = recs.filter(r => tieneM(r) || r.obs || nFotos(r)).length;
+  return `<h1>Hoja semanal</h1>
+  ${segc(CONFIG.CARROS, S.carroSemana, 'semCarro')}
   ${weekNav()}
-  ${tablaSemana(S.carroSemana, S.semana)}
-  <p class="small muted">Cada columna es una inspección con su hora. Toca el encabezado para verla o editarla; en un día vacío, para llenarlo. El punto amarillo indica que ese ítem tiene foto. En "Registró" van las iniciales de quien hizo la inspección.</p>
-  ${observacionesSemana(S.carroSemana, S.semana)}`;
+  <div class="card" style="padding-bottom:0">
+    <div class="head" style="margin-bottom:6px"><h2>Inspecciones (${recs.length})</h2>${conNov ? `<span class="small muted">${conNov} con detalle</span>` : ''}</div>
+    ${listaInspecciones(recs)}
+    <div style="height:14px"></div>
+  </div>
+  ${acc('hoja', 'Hoja FOR-PSB-07', 'Vista del formato de papel. Toca para desplegar.', tablaSemana(S.carroSemana, S.semana), false)}`;
 }
 
+/* ---------- Admin ---------- */
 function vAdmin() {
-  if (!S.admin) return `<div class="card" style="margin-top:20px">
-    <h2>Panel administrador</h2><p class="muted">Ingresa el PIN de administrador.</p>
-    <input class="t pin" id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
-    <div style="height:12px"></div><button class="btn" data-act="pin">Entrar</button></div>`;
+  if (!S.admin) return `<div class="card stack" style="margin-top:8px">
+    <div><h1>Panel administrador</h1><p class="small muted" style="margin:4px 0 0">Ingresa el PIN para ver el resumen y exportar.</p></div>
+    <input class="t pin" id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="PIN">
+    <button class="btn" data-act="pin">Entrar</button></div>`;
   const f = fechasSemana(S.semana), h = toISO(hoy());
   const pasados = f.filter(x => x <= h);
   const all = recsSemana(S.semana);
   const novedades = [];
   all.forEach(r => ITEMS.forEach(([id, lab]) => { if (r.items[id] === 'M') novedades.push({r, id, lab, obs: (r.obsItems || {})[id]}); }));
-  novedades.sort((a, b) => (a.r.fecha + a.r.hora) < (b.r.fecha + b.r.hora) ? -1 : 1);
-  const camareros = [...new Set(all.map(quien).filter(Boolean))];
-  return `<div class="row between"><h2>Panel administrador</h2><button class="link" data-act="lock">Salir</button></div>
-  <div style="height:8px"></div>${weekNav()}
+  const personal = {};
+  all.forEach(r => { const k = quien(r); personal[k] = (personal[k] || 0) + 1; });
+  const faltas = CONFIG.CARROS.map(c => ({ c, dias: pasados.filter(x => !recsDia(c, x).length) }));
+  const nFaltas = faltas.reduce((n, x) => n + x.dias.length, 0);
+  return `<div class="head"><h1>Panel administrador</h1><button class="link" data-act="lock">Salir</button></div>
+  ${weekNav()}
   <div class="grid2">${CONFIG.CARROS.map(c => {
     const n = pasados.filter(x => recsDia(c, x).length).length;
-    const tot = recsSemana(S.semana, c).length;
-    const m = recsSemana(S.semana, c).filter(tieneM).length;
-    return `<div class="card" style="margin:0"><h3>${esc(c)}</h3>
-      <div class="stat"><b>${n}/${pasados.length}</b><span class="small muted">días con registro</span></div>
-      <div class="small" style="margin-top:8px">${tot} inspección${tot === 1 ? '' : 'es'} en total</div>
-      <div class="small" style="color:${m ? 'var(--m)' : 'var(--muted)'}">${m} con novedades</div>
-      ${dotsCarro(c, S.semana)}</div>`;
+    const rs = recsSemana(S.semana, c);
+    return `<div class="card stack" style="gap:10px"><h2>${esc(c)}</h2>
+      <div class="kpi"><b>${n}/${pasados.length}</b><span>días con registro</span></div>
+      <div class="xs muted">${plural(rs.length, 'inspección', 'inspecciones')} · <span style="color:${rs.some(tieneM) ? 'var(--bad)' : 'inherit'}">${rs.filter(tieneM).length} con novedades</span></div>
+      ${semanaMini(c, S.semana)}</div>`;
   }).join('')}</div>
-  <div class="card" style="margin-top:12px"><h3>Días sin registro</h3>
-    ${CONFIG.CARROS.map(c => { const fal = pasados.filter(x => !recsDia(c, x).length);
-      return `<div class="list-item small"><b>${esc(c)}:</b> ${fal.length ? fal.map(x => `Día ${diaNum(parseISO(x))} (${DIAS_C[diaNum(parseISO(x)) - 1]} ${parseISO(x).getDate()})`).join(', ') : '<span style="color:var(--b)">completo</span>'}</div>`; }).join('')}
-  </div>
-  <div class="card"><h3>Ítems en mal estado (${novedades.length})</h3>
-    ${novedades.length ? novedades.map(n => `<div class="list-item"><div><b>${esc(n.r.carro)}</b> · <span style="color:var(--m)">${esc(n.lab)}</span></div>
-      <div class="small muted">Día ${n.r.dia} · ${fmtL(n.r.fecha)} · ${esc(n.r.hora || '')} · ${esc(quien(n.r))}</div>${n.obs ? `<div class="small">“${esc(n.obs)}”</div>` : ''}
-      ${(n.r.fotos && n.r.fotos[n.id] || []).length ? `<div class="fotos">${n.r.fotos[n.id].map(f => thumbHTML(f, null, `${n.lab} · ${n.r.carro} · ${fmtC(n.r.fecha)} ${n.r.hora || ''}`)).join('')}</div>` : ''}</div>`).join('') : '<div class="small muted">Ninguno esta semana.</div>'}
-  </div>
-  <div class="card"><h3>Personal que registró esta semana</h3><div class="small">${camareros.length ? camareros.map(esc).join(', ') : '<span class="muted">Ninguno</span>'}</div></div>
-  <div class="card"><h3>Exportar</h3>
-    <div style="display:grid;gap:8px">
-      <button class="btn" data-act="xlsSemana">Excel de esta semana (formato hoja)</button>
-      <button class="btn sec" data-act="printSemana">Imprimir / PDF de esta semana</button>
-      <button class="btn ghost" data-act="xlsTodo">Excel con todos los registros</button>
-    </div>
-    <p class="small muted" style="margin-bottom:0">Las fotos se ven en la app (Semana y este panel). En el Excel aparece cuántas fotos tiene cada ítem.</p></div>
-  <div class="card"><h3>Datos</h3>
-    <div class="small muted">Inspecciones en este celular: ${activos().length} · Pendientes por enviar: ${pendientes()}<br>
-    Base conjunta: ${conectado() ? 'conectada' : '<b>no configurada</b>: los datos quedan solo en este celular'}<br>
-    Última sincronización: ${S.ultimaSync ? new Date(S.ultimaSync).toLocaleString('es-CO') : 'nunca'}</div>
-    <div style="height:10px"></div><button class="btn ghost" data-act="syncTodo">Descargar todo el historial</button>
-  </div>`;
+  ${acc('nov', `Ítems en mal estado (${novedades.length})`, novedades.length ? 'Con detalle y fotos' : 'Ninguno esta semana',
+    novedades.length ? novedades.map(n => `<div class="li" style="align-items:flex-start;flex-direction:column;gap:4px">
+      <div><b>${esc(n.lab)}</b> <span class="small muted">· ${esc(n.r.carro)}</span></div>
+      <div class="xs muted">${DIAS[n.r.dia - 1]} ${fmtC(n.r.fecha)} · ${esc(n.r.hora || '')} · ${esc(quien(n.r))}</div>
+      ${n.obs ? `<div class="small">${esc(n.obs)}</div>` : ''}
+      ${(n.r.fotos && n.r.fotos[n.id] || []).length ? `<div class="fotos">${n.r.fotos[n.id].map(ft => thumbHTML(ft, null, `${n.lab} · ${n.r.carro} · ${fmtC(n.r.fecha)} ${n.r.hora || ''}`)).join('')}</div>` : ''}
+    </div>`).join('') : '<div class="empty">Sin ítems en mal estado.</div>', novedades.length > 0)}
+  ${acc('faltas', `Días sin registro (${nFaltas})`, nFaltas ? 'Hasta hoy' : 'Semana completa hasta hoy',
+    faltas.map(x => `<div class="li"><b style="min-width:70px">${esc(x.c)}</b><span class="n" style="white-space:normal">${x.dias.length ? x.dias.map(d => `Día ${diaNum(parseISO(d))} (${DIAS_C[diaNum(parseISO(d)) - 1]} ${parseISO(d).getDate()})`).join(', ') : 'Completo'}</span></div>`).join(''), false)}
+  ${acc('pers', `Personal que registró (${Object.keys(personal).length})`, 'Esta semana',
+    Object.keys(personal).length ? Object.entries(personal).map(([k, n]) => `<div class="li"><span class="n" style="color:var(--text)">${esc(k)}</span><span class="small muted">${plural(n, 'inspección', 'inspecciones')}</span></div>`).join('') : '<div class="empty">Nadie ha registrado esta semana.</div>', false)}
+  ${acc('exp', 'Exportar', 'Excel o PDF de la semana', `<div class="stack" style="gap:8px;padding-top:8px">
+      <button class="btn" data-act="xlsSemana">Excel de la semana (formato hoja)</button>
+      <button class="btn sec" data-act="printSemana">Imprimir o guardar PDF</button>
+      <button class="btn sec" data-act="xlsTodo">Excel con todos los registros</button></div>`, false)}
+  ${acc('datos', 'Datos y sincronización', S.ultimaSync ? 'Última: ' + new Date(S.ultimaSync).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }) : 'Sin sincronizar', `<div class="stack" style="gap:8px;padding-top:8px">
+      <div class="small muted">Inspecciones en este celular: ${activos().length}<br>Pendientes por enviar: ${pendientes()}<br>Base compartida: ${conectado() ? 'conectada' : 'no configurada'}</div>
+      <button class="btn sec" data-act="syncTodo">Descargar todo el historial</button></div>`, false)}`;
 }
 
 /* ================== RENDER ================== */
-function render() {
+function guardarAbiertos() {
+  document.querySelectorAll('main details[data-key]').forEach(d => { S.acc = S.acc || {}; S.acc[S.view + d.dataset.key] = d.open; });
+}
+function render(conservar) {
   const main = $('#main');
+  if (conservar) guardarAbiertos();
   if (!ME.nombre || !ME.cargo || S.view === 'perfil') {
     if (S.cargoTmp === undefined) S.cargoTmp = ME.cargo || '';
-    main.innerHTML = vBienvenida(); $('#savebarHost').innerHTML = '';
+    main.innerHTML = vPerfil(); $('#savebarHost').innerHTML = '';
     document.querySelectorAll('#nav button').forEach(b => b.classList.remove('on')); pintarSync(); return;
   }
   if (S.view === 'form' && !S.draft) nuevoDraft(CONFIG.CARROS[0], toISO(hoy()));
   main.innerHTML = { inicio: vInicio, form: vForm, semana: vSemana, admin: vAdmin }[S.view]();
+  if (conservar && S.acc) main.querySelectorAll('details[data-key]').forEach(d => { const k = S.view + d.dataset.key; if (k in S.acc) d.open = S.acc[k]; });
   $('#savebarHost').innerHTML = S.view === 'form' ? savebarHTML() : '';
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === S.view));
   hidratarFotos(main);
   pintarSync();
 }
-function ir(view) { S.view = view; render(); window.scrollTo(0, 0); }
+function ir(view) { S.view = view; S.acc = {}; render(); window.scrollTo(0, 0); }
 
 /* ================== FORMULARIO: lógica ================== */
 function nuevoDraft(carro, fecha) {
-  const semana = lunesISO(parseISO(fecha));
-  const prev = activos().filter(r => r.carro === carro && r.semana === semana).sort((a, b) => (a.fecha + a.hora) < (b.fecha + b.hora) ? 1 : -1)[0];
   S.draft = {
-    id: uid(), carro, fecha, semana, dia: diaNum(parseISO(fecha)),
+    id: uid(), carro, fecha, semana: lunesISO(parseISO(fecha)), dia: diaNum(parseISO(fecha)),
     hora: fecha === toISO(hoy()) ? ahoraHM() : '',
     camarero: ME.nombre, cargo: ME.cargo || '', items: {}, obsItems: {}, fotos: {},
-    desinfAM: false, desinfPM: false, obs: '',
-    gestor: prev ? prev.gestor || '' : '', conductor: prev ? prev.conductor || '' : '',
-    _existe: false
+    desinfAM: false, desinfPM: false, obs: '', _existe: false
   };
-  S.dirty = false;
+  S.abiertas = new Set([0]); S.dirty = false;
 }
 function editar(id) {
   const ex = DB[id]; if (!ex) return;
   const d = JSON.parse(JSON.stringify(ex));
   d.items = d.items || {}; d.obsItems = d.obsItems || {}; d.fotos = d.fotos || {};
   d._existe = true; delete d._pending;
-  S.draft = d; S.dirty = false; ir('form');
+  S.draft = d; S.abiertas = new Set(); S.dirty = false; ir('form');
 }
 function cambiarFecha(fecha) {
   const d = S.draft;
   d.fecha = fecha; d.semana = lunesISO(parseISO(fecha)); d.dia = diaNum(parseISO(fecha));
   S.dirty = true; render();
 }
-function actualizarProg() { const p = $('#prog'); if (p) p.textContent = `${ITEMS.filter(([id]) => S.draft.items[id]).length}/${ITEMS.length}`; }
-function setVal(id, v) {
-  const d = S.draft; d.items[id] = v; S.dirty = true;
+function actualizarProg() {
+  const n = ITEMS.filter(([id]) => S.draft.items[id]).length;
+  const p = $('#prog'); if (p) p.textContent = `${n} de ${ITEMS.length}`;
+  const b = $('#progBar'); if (b) b.style.width = Math.round(n / ITEMS.length * 100) + '%';
+}
+function actualizarSeccion(i) {
+  const s = SECCIONES[i], d = S.draft;
+  const ic = $('#sic-' + i), sub = $('#ssub-' + i);
+  if (ic) ic.innerHTML = iconoSec(s, d);
+  if (sub) sub.textContent = subSec(s, d);
+}
+const seccionDe = id => SECCIONES.findIndex(s => s.items.some(([k]) => k === id));
+function pintarExtra(id) {
+  const ex = $('#ex-' + id); if (!ex) return;
+  ex.innerHTML = extraHTML(id, S.draft); hidratarFotos(ex);
+  const cam = document.querySelector(`#it-${id} .cam`); if (cam) cam.classList.toggle('has', (S.draft.fotos[id] || []).length > 0);
+}
+function setVal(id, v, auto) {
+  const d = S.draft, antes = d.items[id];
+  d.items[id] = v; S.dirty = true;
   const el = $('#it-' + id); if (!el) return;
   el.classList.remove('falta');
-  el.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-  el.querySelector('.obs-item').hidden = v !== 'M';
-  actualizarProg();
+  el.querySelectorAll('.opts button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  if ((antes === 'M') !== (v === 'M')) { pintarExtra(id); if (v === 'M' && !auto) { const inp = el.querySelector('[data-obs]'); if (inp) inp.focus({ preventScroll: true }); } }
+  const i = seccionDe(id);
+  actualizarSeccion(i); actualizarProg();
+  if (!auto && respondidosSec(SECCIONES[i], d) === SECCIONES[i].items.length && v !== 'M') avanzarDesde(i);
 }
-function pintarFotosItem(id) {
-  const box = $('#fotos-' + id); if (!box) return;
-  box.innerHTML = fotosItemHTML(id, S.draft); hidratarFotos(box);
+function avanzarDesde(i) {
+  const d = S.draft;
+  const sig = SECCIONES.findIndex((s, k) => k > i && respondidosSec(s, d) < s.items.length);
+  if (sig < 0) return;
+  const actual = document.querySelector(`details[data-sec="${i}"]`), nueva = document.querySelector(`details[data-sec="${sig}"]`);
+  setTimeout(() => {
+    if (actual && !actual.querySelector('.item [data-obs]')) actual.open = false;
+    if (nueva) { nueva.open = true; nueva.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  }, 250);
 }
 async function agregarFotos(id, files) {
   const d = S.draft;
@@ -700,42 +797,41 @@ async function agregarFotos(id, files) {
       S.dirty = true;
     } catch (e) { toast('No se pudo agregar la foto'); }
   }
-  pintarFotosItem(id);
+  pintarExtra(id);
 }
 function guardar() {
   const d = S.draft;
-  if (!d.cargo) { toast('Elige el cargo'); return; }
-  if (!d.camarero.trim()) { toast('Escribe el nombre'); $('#fCamarero').focus(); return; }
   if (!d.hora) { toast('Indica la hora de la inspección'); $('#fHora').focus(); return; }
   const faltan = ITEMS.filter(([id]) => !d.items[id]);
   if (faltan.length) {
     faltan.forEach(([id]) => { const el = $('#it-' + id); if (el) el.classList.add('falta'); });
+    const secs = new Set(faltan.map(([id]) => seccionDe(id)));
+    document.querySelectorAll('details[data-sec]').forEach(x => { if (secs.has(+x.dataset.sec)) x.open = true; });
     const first = $('#it-' + faltan[0][0]);
-    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    toast(`Faltan ${faltan.length} ítem${faltan.length > 1 ? 's' : ''} por marcar`);
+    if (first) setTimeout(() => first.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+    toast(`Faltan ${plural(faltan.length, 'ítem', 'ítems')} por marcar`);
     return;
   }
   Object.keys(d.obsItems).forEach(id => { if (d.items[id] !== 'M' || !d.obsItems[id].trim()) delete d.obsItems[id]; });
   Object.keys(d.fotos).forEach(id => { if (!d.fotos[id].length) delete d.fotos[id]; });
-  // conserva los enlaces de Drive de fotos que se subieron mientras se editaba
   const prev = DB[d.id];
   if (prev && prev.fotos) Object.values(prev.fotos).flat().forEach(pf => {
     Object.values(d.fotos).flat().forEach(f => { if (f.id === pf.id && pf.sub) f.sub = true; });
   });
   const now = new Date().toISOString();
   const rec = limpio(d);
-  rec.camarero = rec.camarero.trim();
-  rec.actualizado = now; rec.creado = rec.creado || now; rec.dispositivo = ME.dispositivo;
+  delete rec.gestor; delete rec.conductor;
+  rec.actualizado = now; rec.creado = rec.creado || now; rec.dispositivo = rec.dispositivo || ME.dispositivo;
   rec._pending = true;
   DB[rec.id] = rec; persist();
-  toast(d._existe ? 'Inspección actualizada' : `Inspección de las ${hora12(rec.hora)} guardada`);
+  toast(d._existe ? 'Cambios guardados' : `Inspección de las ${hora12(rec.hora)} guardada`);
   S.semana = rec.semana; S.carroSemana = rec.carro; S.draft = null; S.dirty = false;
   ir('semana');
   sync();
 }
 function eliminar() {
   const d = S.draft;
-  if (!confirm(`¿Eliminar la inspección del ${fmtC(d.fecha)} a las ${hora12(d.hora)}? Esta acción no se puede deshacer.`)) return;
+  if (!confirm(`¿Eliminar la inspección del ${fmtC(d.fecha)} a las ${hora12(d.hora)}? No se puede deshacer.`)) return;
   const rec = limpio(DB[d.id] || d);
   rec.eliminado = true; rec.actualizado = new Date().toISOString(); rec._pending = true;
   DB[rec.id] = rec; persist();
@@ -744,24 +840,22 @@ function eliminar() {
 }
 
 /* ================== EXPORTAR ================== */
-const fotosTexto = r => Object.entries(r.fotos || {}).filter(([, arr]) => arr.length).map(([id, arr]) => `${LABEL[id]}: ${arr.length} foto${arr.length > 1 ? 's' : ''}`);
+const fotosTexto = r => Object.entries(r.fotos || {}).filter(([, arr]) => arr.length).map(([id, arr]) => `${LABEL[id]}: ${plural(arr.length, 'foto', 'fotos')}`);
 const novTexto = r => ITEMS.filter(([id]) => r.items[id] === 'M').map(([id, lab]) => lab + (r.obsItems && r.obsItems[id] ? ': ' + r.obsItems[id] : ''));
 function hojaAOA(carro, lunes) {
   const f = fechasSemana(lunes);
   const cols = columnas(carro, lunes);
   const recs = cols.map(c => c.r).filter(Boolean);
-  const cams = [...new Set(recs.map(quien))].join(', ');
-  const firm = recs.slice().reverse();
   const aoa = [
     ['INSPECCIÓN DIARIA CARROS DE GOLF', ...Array(Math.max(0, cols.length - 1)).fill(''), 'FOR-PSB-07'],
-    ['Nombre del colaborador:', cams],
+    ['Colaboradores:', [...new Set(recs.map(quien))].join(', ')],
     ['Semana del', fmtC(f[0]), 'al', fmtC(f[6]) + ' de ' + parseISO(f[6]).getFullYear(), '', 'Carro:', carro],
     ['B - BUENO', 'M - MALA', 'NA - NO APLICA'],
     [],
     ['DESCRIPCIÓN', ...cols.map(c => `DÍA ${c.i + 1} (${DIAS_C[c.i]} ${parseISO(c.f).getDate()})${c.r ? ' ' + (c.r.hora || '') : ''}`)]
   ];
-  SECCIONES.forEach(s => {
-    aoa.push([s.t]);
+  SECCIONES.forEach((s, si) => {
+    aoa.push([`${si + 1}. ${s.t}`]);
     s.items.forEach(([id, lab]) => {
       aoa.push([lab, ...cols.map(c => c.r ? (c.r.items[id] || '') : '')]);
       if (id === 'desinfeccion') aoa.push(['   Desinfección realizada (AM/PM)', ...cols.map(c => c.r ? [c.r.desinfAM && 'AM', c.r.desinfPM && 'PM'].filter(Boolean).join('-') : '')]);
@@ -774,9 +868,7 @@ function hojaAOA(carro, lunes) {
     if (nov.length || r.obs) aoa.push([`Día ${r.dia} (${fmtC(r.fecha)}) ${r.hora || ''} - ${quien(r)}`, [nov.join('; '), r.obs].filter(Boolean).join(' | ')]);
   });
   const fotos = recs.flatMap(r => fotosTexto(r).map(t => [`Día ${r.dia} (${fmtC(r.fecha)}) ${r.hora || ''}`, t]));
-  if (fotos.length) { aoa.push([]); aoa.push(['FOTOS DE EVIDENCIA']); fotos.forEach(x => aoa.push(x)); }
-  aoa.push([]);
-  aoa.push(['GESTOR ALOJAMIENTO:', (firm.find(r => r.gestor) || {}).gestor || '', '', '', 'CONDUCTOR:', (firm.find(r => r.conductor) || {}).conductor || '']);
+  if (fotos.length) { aoa.push([]); aoa.push(['FOTOS DE EVIDENCIA (ver en la app)']); fotos.forEach(x => aoa.push(x)); }
   return { aoa, ncols: cols.length };
 }
 function descargarCSV(nombre, aoa) {
@@ -798,11 +890,11 @@ function xlsSemana() {
   XLSX.writeFile(wb, nombre + '.xlsx');
 }
 function xlsTodo() {
-  const head = ['Fecha', 'Hora', 'Semana (lunes)', 'Día', 'Día semana', 'Carro', 'Nombre', 'Cargo', ...ITEMS.map(i => i[1]), 'Desinfección AM', 'Desinfección PM', 'Novedades', 'Observación general', 'Fotos', 'Gestor alojamiento', 'Conductor', 'Actualizado'];
+  const head = ['Fecha', 'Hora', 'Semana (lunes)', 'Día', 'Día semana', 'Carro', 'Nombre', 'Cargo', ...ITEMS.map(i => i[1]), 'Desinfección AM', 'Desinfección PM', 'Novedades', 'Observaciones', 'Fotos', 'Actualizado'];
   const rows = activos().sort((a, b) => (a.fecha + a.hora + a.carro) < (b.fecha + b.hora + b.carro) ? -1 : 1).map(r => [
     r.fecha, r.hora || '', r.semana, r.dia, DIAS[r.dia - 1], r.carro, r.camarero, r.cargo || '', ...ITEMS.map(([id]) => r.items[id] || ''),
     r.desinfAM ? 'Sí' : 'No', r.desinfPM ? 'Sí' : 'No', novTexto(r).join('; '),
-    r.obs || '', fotosTexto(r).join('\n'), r.gestor || '', r.conductor || '', r.actualizado || '']);
+    r.obs || '', fotosTexto(r).join('; '), r.actualizado || '']);
   if (!window.XLSX) { descargarCSV('Inspecciones_todas.csv', [head, ...rows]); return; }
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head, ...rows]), 'Registros');
@@ -813,11 +905,9 @@ function printSemana() {
   $('#print').innerHTML = CONFIG.CARROS.map(c => {
     const cols = columnas(c, S.semana);
     const recs = cols.map(x => x.r).filter(Boolean);
-    const firm = recs.slice().reverse();
-    const cams = [...new Set(recs.map(quien))].join(', ');
     let rows = '';
-    SECCIONES.forEach(s => {
-      rows += `<tr class="s"><td colspan="${cols.length + 1}">${esc(s.t)}</td></tr>`;
+    SECCIONES.forEach((s, si) => {
+      rows += `<tr class="s"><td colspan="${cols.length + 1}">${si + 1}. ${esc(s.t)}</td></tr>`;
       s.items.forEach(([id, lab]) => {
         rows += `<tr><td class="d">${esc(lab)}</td>${cols.map(x => `<td>${x.r ? (x.r.items[id] || '') + (id === 'desinfeccion' ? ' <small>' + [x.r.desinfAM && 'am', x.r.desinfPM && 'pm'].filter(Boolean).join('-') + '</small>' : '') : ''}</td>`).join('')}</tr>`;
       });
@@ -827,12 +917,11 @@ function printSemana() {
       return (nov.length || r.obs) ? `<div>Día ${r.dia} (${fmtC(r.fecha)}) ${esc(r.hora || '')} – ${esc(quien(r))}: ${esc([nov.join('; '), r.obs].filter(Boolean).join(' | '))}</div>` : '';
     }).join('');
     return `<div class="pg"><h1>INSPECCIÓN DIARIA CARROS DE GOLF</h1>
-      <div class="hdr"><span>Nombre del colaborador: <b>${esc(cams)}</b></span><span>Carro: <b>${esc(c)}</b></span></div>
+      <div class="hdr"><span>Colaboradores: <b>${esc([...new Set(recs.map(quien))].join(', '))}</b></span><span>Carro: <b>${esc(c)}</b></span></div>
       <div class="hdr"><span>Semana del <b>${fmtC(f[0])}</b> al <b>${fmtC(f[6])}</b> de ${parseISO(f[6]).getFullYear()}</span><span>B - BUENO &nbsp; M - MALA &nbsp; NA - NO APLICA</span></div>
       <table><tr><th>DESCRIPCIÓN</th>${cols.map(x => `<th>DÍA ${x.i + 1}<br><small>${DIAS_C[x.i]} ${parseISO(x.f).getDate()}${x.r ? ' · ' + esc(x.r.hora || '') : ''}</small></th>`).join('')}</tr>${rows}
       <tr><td class="d"><b>Registró</b></td>${cols.map(x => `<td><small>${x.r ? esc(quien(x.r)) : ''}</small></td>`).join('')}</tr></table>
       ${obs ? `<div style="margin-top:6px"><b>Observaciones:</b>${obs}</div>` : ''}
-      <div class="firmas"><div>${esc((firm.find(r => r.gestor) || {}).gestor || '')}<br>GESTOR ALOJAMIENTO</div><div>${esc((firm.find(r => r.conductor) || {}).conductor || '')}<br>CONDUCTOR</div></div>
       <div style="text-align:right;margin-top:6px">FOR-PSB-07</div></div>`;
   }).join('');
   setTimeout(() => window.print(), 50);
@@ -857,37 +946,40 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   switch (b.dataset.act) {
     case 'sync': sync(false, true); break;
-    case 'guardarNombre': {
+    case 'perfil': S.cargoTmp = ME.cargo || ''; S.view = 'perfil'; render(); break;
+    case 'elegirCargo': S.cargoTmp = b.dataset.v; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
+    case 'guardarPerfil': {
       const n = $('#nombreIn').value.trim();
       if (!S.cargoTmp) return toast('Elige tu cargo');
       if (!n) return toast('Escribe tu nombre');
       ME.nombre = n; ME.cargo = S.cargoTmp; store.set('ig_me', ME); S.view = 'inicio'; render(); break;
     }
-    case 'elegirCargo': S.cargoTmp = b.dataset.cargo; document.querySelectorAll('#cargoSel button').forEach(x => x.classList.toggle('on', x === b)); break;
-    case 'cambiarNombre': S.cargoTmp = ME.cargo || ''; S.view = 'perfil'; render(); break;
     case 'cancelarPerfil': S.view = 'inicio'; render(); break;
-    case 'formCargo': S.draft.cargo = b.dataset.cargo; S.dirty = true; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
     case 'nuevo': nuevoDraft(b.dataset.carro, b.dataset.fecha || toISO(hoy())); ir('form'); break;
-    case 'editar': editar(b.dataset.id); break;
+    case 'editar': e.preventDefault(); editar(b.dataset.id); break;
     case 'verSemana': S.carroSemana = b.dataset.carro; S.semana = lunesISO(hoy()); ir('semana'); break;
-    case 'formCarro': S.draft.carro = b.dataset.carro; S.dirty = true; render(); break;
+    case 'formCarro': S.draft.carro = b.dataset.v; S.dirty = true; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
     case 'val': setVal(b.dataset.id, b.dataset.v); break;
+    case 'seccionB': {
+      const i = +b.dataset.sec;
+      SECCIONES[i].items.forEach(([id]) => { if (!S.draft.items[id]) setVal(id, 'B', true); });
+      avanzarDesde(i); break;
+    }
     case 'desinf': S.draft[b.dataset.k] = !S.draft[b.dataset.k]; b.classList.toggle('on', S.draft[b.dataset.k]); S.dirty = true; break;
-    case 'todoB': ITEMS.forEach(([id]) => { if (!S.draft.items[id]) setVal(id, 'B'); }); toast('Ítems pendientes marcados en B'); break;
     case 'quitarFoto': {
       e.stopPropagation();
       if (!confirm('¿Quitar esta foto?')) return;
       const arr = S.draft.fotos[b.dataset.item] || [];
       S.draft.fotos[b.dataset.item] = arr.filter(f => f.id !== b.dataset.foto);
-      S.dirty = true; pintarFotosItem(b.dataset.item); break;
+      S.dirty = true; pintarExtra(b.dataset.item); break;
     }
     case 'verFoto': verFoto(b); break;
     case 'cerrarVisor': $('#visor').classList.remove('on'); break;
     case 'guardar': guardar(); break;
     case 'eliminar': eliminar(); break;
-    case 'semPrev': S.semana = toISO(addDays(parseISO(S.semana), -7)); render(); break;
-    case 'semNext': if (S.semana < lunesISO(hoy())) { S.semana = toISO(addDays(parseISO(S.semana), 7)); render(); } break;
-    case 'semCarro': S.carroSemana = b.dataset.carro; render(); break;
+    case 'semPrev': S.semana = toISO(addDays(parseISO(S.semana), -7)); render(true); break;
+    case 'semNext': if (S.semana < lunesISO(hoy())) { S.semana = toISO(addDays(parseISO(S.semana), 7)); render(true); } break;
+    case 'semCarro': S.carroSemana = b.dataset.v; render(true); break;
     case 'pin': {
       if ($('#pinIn').value === CONFIG.ADMIN_PIN) { S.admin = true; sessionStorage.setItem('ig_admin', '1'); render(); }
       else { toast('PIN incorrecto'); $('#pinIn').value = ''; } break;
@@ -899,6 +991,10 @@ document.addEventListener('click', e => {
     case 'syncTodo': sync(true, true); break;
   }
 });
+document.addEventListener('toggle', e => {
+  const d = e.target;
+  if (d.dataset && d.dataset.sec !== undefined) { const i = +d.dataset.sec; d.open ? S.abiertas.add(i) : S.abiertas.delete(i); }
+}, true);
 document.addEventListener('input', e => {
   const t = e.target;
   if (!S.draft) return;
@@ -912,7 +1008,7 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'pinIn') document.querySelector('[data-act="pin"]').click();
-  if (e.key === 'Enter' && e.target.id === 'nombreIn') document.querySelector('[data-act="guardarNombre"]').click();
+  if (e.key === 'Enter' && e.target.id === 'nombreIn') document.querySelector('[data-act="guardarPerfil"]').click();
   if (e.key === 'Escape') $('#visor').classList.remove('on');
 });
 window.addEventListener('beforeunload', e => { if (S.view === 'form' && S.dirty) { e.preventDefault(); e.returnValue = ''; } });

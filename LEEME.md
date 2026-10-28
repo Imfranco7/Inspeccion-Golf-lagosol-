@@ -6,7 +6,8 @@ Funciona sin internet: guarda en el celular y sincroniza con Supabase (datos y f
 ## Qué hace
 - Varias inspecciones por carro y por día, cada una con su **hora**.
 - Cargo (Camarero o Anfitrión de servicios) y nombre de quien registra.
-- Ítems B / M / N/A, observación por ítem en M, observación general, Gestor y Conductor.
+- Formulario por secciones desplegables; ítems B / M / N/A, detalle al marcar M y observaciones generales.
+- El nombre y el cargo se registran una vez en cada celular y se usan en todas las inspecciones.
 - **Fotos de evidencia** en cualquier ítem (cámara o galería), comprimidas a ~150 KB.
 - Hoja semanal igual al papel: una columna por inspección, agrupadas del Día 1 (lunes) al Día 7 (domingo).
 - Panel admin (PIN): días sin registro, ítems en mal estado con fotos, exportar Excel / PDF.
@@ -36,7 +37,7 @@ El panel admin de la app y la vista Semana muestran todo; el Excel se exporta de
 - **iPhone:** abrir el link en Safari → Compartir → *Agregar a pantalla de inicio*.
 - **Android:** abrir en Chrome → menú ⋮ → *Instalar app* / *Agregar a pantalla principal*.
 
-Cada camarero escribe su nombre la primera vez.
+La primera vez cada persona elige su cargo y escribe su nombre.
 
 ## Notas
 - El indicador arriba a la derecha muestra si hay inspecciones o fotos pendientes por enviar. Tocarlo fuerza la sincronización.
