@@ -168,13 +168,12 @@ td.fut{background:repeating-linear-gradient(45deg,transparent,transparent 4px,va
 
 <script>
 /* ================== CONFIGURACIÓN ==================
-   API_URL: URL de la "Aplicación web" de Google Apps Script (ver LEEME.md).
-            Si se deja vacía, la app funciona solo en este celular.
-   TOKEN:   debe ser IGUAL al TOKEN de Code.gs.
+   SUPABASE_URL / SUPABASE_KEY: proyecto de Supabase (Settings → API).
+       Si se dejan vacíos, la app funciona solo en este celular.
    ADMIN_PIN: PIN para entrar al panel administrador.            */
 const CONFIG = {
-  API_URL: '',
-  TOKEN: 'ig-dc789ccdbbd3b9db2d24',
+  SUPABASE_URL: '',
+  SUPABASE_KEY: '',
   ADMIN_PIN: '1234',
   CARROS: ['Lencero', 'H5'],
   SEMANAS_SYNC: 12,
@@ -262,19 +261,26 @@ const fotosDB = (() => {
   return { get: k => tx('readonly', s => s.get(k)).catch(() => null), set: (k, v) => tx('readwrite', s => s.put(v, k)), del: k => tx('readwrite', s => s.delete(k)).catch(() => {}) };
 })();
 const fotoCache = {};
-const urlDrive = id => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1280`;
 async function srcFoto(f) {
   if (fotoCache[f.id]) return fotoCache[f.id];
   const local = await fotosDB.get(f.id);
   if (local) return (fotoCache[f.id] = local);
-  return f.drive ? urlDrive(f.drive) : '';
+  if (!f.sub || !conectado() || !navigator.onLine) return '';
+  try {
+    const rows = await sbGet(`select=datos&id=eq.${encodeURIComponent('foto_' + f.id)}`);
+    if (rows[0] && rows[0].datos) {
+      fotoCache[f.id] = rows[0].datos;
+      fotosDB.set(f.id, rows[0].datos).catch(() => {});
+      return rows[0].datos;
+    }
+  } catch (e) { console.warn(e); }
+  return '';
 }
 function hidratarFotos(root = document) {
   root.querySelectorAll('img[data-foto]:not([data-ok])').forEach(async img => {
     img.dataset.ok = '1';
-    const src = await srcFoto({ id: img.dataset.foto, drive: img.dataset.drive });
+    const src = await srcFoto({ id: img.dataset.foto, sub: img.dataset.sub === '1' });
     if (src) img.src = src;
-    img.onerror = () => { if (img.dataset.drive && !img.dataset.alt) { img.dataset.alt = '1'; img.src = `https://lh3.googleusercontent.com/d/${img.dataset.drive}=w1280`; } };
   });
 }
 function comprimir(file) {
@@ -290,8 +296,8 @@ function comprimir(file) {
     img.src = url;
   });
 }
-const thumbHTML = (f, quitar, titulo) => `<div class="thumb" data-act="verFoto" data-foto="${esc(f.id)}" data-drive="${esc(f.drive || '')}" data-titulo="${esc(titulo || '')}">
-  <img data-foto="${esc(f.id)}" data-drive="${esc(f.drive || '')}" alt="">${quitar ? `<button class="x" data-act="quitarFoto" data-item="${esc(quitar)}" data-foto="${esc(f.id)}" aria-label="Quitar foto">×</button>` : ''}</div>`;
+const thumbHTML = (f, quitar, titulo) => `<div class="thumb" data-act="verFoto" data-foto="${esc(f.id)}" data-sub="${f.sub ? 1 : 0}" data-titulo="${esc(titulo || '')}">
+  <img data-foto="${esc(f.id)}" data-sub="${f.sub ? 1 : 0}" alt="">${quitar ? `<button class="x" data-act="quitarFoto" data-item="${esc(quitar)}" data-foto="${esc(f.id)}" aria-label="Quitar foto">×</button>` : ''}</div>`;
 
 /* ================== ESTADO ================== */
 let DB = store.get('ig_records', {});
@@ -319,35 +325,51 @@ let syncing = false, otraVez = false;
 function setSync(cls, txt) { const p = $('#syncPill'); p.className = 'pill ' + cls; p.querySelector('span').textContent = txt; }
 function pintarSync() {
   const n = pendientes();
-  if (!CONFIG.API_URL) return setSync('', 'Solo local');
+  if (!conectado()) return setSync('', 'Solo local');
   if (!navigator.onLine) return setSync('offline', n ? `Sin red · ${n} pend.` : 'Sin red');
   if (n) return setSync('offline', `${n} pendiente${n > 1 ? 's' : ''}`);
   setSync('ok', 'Sincronizado');
 }
 const limpio = r => { const c = JSON.parse(JSON.stringify(r)); delete c._pending; delete c._existe; return c; };
-async function apiPost(body) {
-  const r = await fetch(CONFIG.API_URL, { method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({...body, token: CONFIG.TOKEN}) });
+/* Base conjunta: una tabla "registros" en Supabase (id text PK, tipo, semana, datos) */
+const conectado = () => !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY);
+const sbURL = () => CONFIG.SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/registros';
+const sbHead = extra => ({ apikey: CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json', ...(extra || {}) });
+async function sbError(r) {
+  let m = r.status + '';
+  try { const j = await r.json(); m = j.message || j.error || j.hint || m; } catch (e) {}
+  return new Error(m);
+}
+async function sbUpsert(rows) {
+  const r = await fetch(sbURL() + '?on_conflict=id', { method: 'POST', headers: sbHead({ Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify(rows) });
+  if (!r.ok) throw await sbError(r);
+}
+async function sbGet(query) {
+  const r = await fetch(sbURL() + '?' + query, { headers: sbHead() });
+  if (!r.ok) throw await sbError(r);
   return r.json();
 }
-async function apiGet(params) {
-  const q = new URLSearchParams({...params, token: CONFIG.TOKEN});
-  const r = await fetch(CONFIG.API_URL + '?' + q.toString());
-  return r.json();
+async function sbGetTodo(query) {
+  const out = [];
+  for (let off = 0; ; off += 1000) {
+    const rows = await sbGet(`${query}&order=id&limit=1000&offset=${off}`);
+    out.push(...rows);
+    if (rows.length < 1000) return out;
+  }
 }
 async function subirFotos(rec) {
-  for (const [item, arr] of Object.entries(rec.fotos || {})) {
+  for (const arr of Object.values(rec.fotos || {})) {
     for (const f of arr) {
-      if (f.drive) continue;
+      if (f.sub) continue;
       const data = await fotosDB.get(f.id);
       if (!data) continue;
-      const res = await apiPost({ action: 'foto', id: f.id, nombre: `${rec.carro}_${rec.fecha}_${(rec.hora || '').replace(':', '')}_${item}_${f.id}.jpg`, data: data.split(',')[1] });
-      if (!res.ok) throw new Error(res.error || 'No se pudo subir una foto');
-      f.drive = res.driveId; persist();
+      await sbUpsert([{ id: 'foto_' + f.id, tipo: 'foto', semana: rec.semana, datos: data }]);
+      f.sub = true; persist();
     }
   }
 }
 async function sync(todo = false, avisar = false) {
-  if (!CONFIG.API_URL) { pintarSync(); if (avisar) toast('Sin base conjunta configurada: los datos quedan en este celular'); return; }
+  if (!conectado()) { pintarSync(); if (avisar) toast('Sin base conjunta configurada: los datos quedan en este celular'); return; }
   if (!navigator.onLine) { pintarSync(); if (avisar) toast('Sin conexión. Se enviará al volver la red'); return; }
   if (syncing) { otraVez = true; return; }
   syncing = true; otraVez = false; setSync('sync', 'Sincronizando…');
@@ -356,15 +378,13 @@ async function sync(todo = false, avisar = false) {
     for (const r of pend) await subirFotos(r);
     if (pend.length) {
       const enviados = Object.fromEntries(pend.map(r => [r.id, r.actualizado]));
-      const res = await apiPost({ action: 'upsert', records: pend.map(limpio) });
-      if (!res.ok) throw new Error(res.error);
-      (res.guardados || []).forEach(id => { if (DB[id] && DB[id].actualizado === enviados[id]) delete DB[id]._pending; });
+      await sbUpsert(pend.map(r => ({ id: r.id, tipo: 'insp', semana: r.semana, datos: JSON.stringify(limpio(r)) })));
+      Object.keys(enviados).forEach(id => { if (DB[id] && DB[id].actualizado === enviados[id]) delete DB[id]._pending; });
       persist();
     }
     const desde = todo ? '' : toISO(addDays(parseISO(lunesISO(hoy())), -7 * CONFIG.SEMANAS_SYNC));
-    const res2 = await apiGet({ action: 'list', desde });
-    if (!res2.ok) throw new Error(res2.error);
-    (res2.records || []).forEach(r => {
+    const filas = await sbGetTodo(`select=datos&tipo=eq.insp${desde ? '&semana=gte.' + desde : ''}`);
+    filas.map(f => { try { return JSON.parse(f.datos); } catch (e) { return null; } }).filter(Boolean).forEach(r => {
       const l = DB[r.id];
       if (!l || (!l._pending && r.actualizado >= l.actualizado)) DB[r.id] = r;
     });
@@ -589,10 +609,10 @@ function vAdmin() {
       <button class="btn sec" data-act="printSemana">Imprimir / PDF de esta semana</button>
       <button class="btn ghost" data-act="xlsTodo">Excel con todos los registros</button>
     </div>
-    <p class="small muted" style="margin-bottom:0">Las fotos quedan en la carpeta "Inspección Golf - Fotos" de Google Drive y su enlace aparece en el Excel y en la hoja de Google.</p></div>
+    <p class="small muted" style="margin-bottom:0">Las fotos se ven en la app (Semana y este panel). En el Excel aparece cuántas fotos tiene cada ítem.</p></div>
   <div class="card"><h3>Datos</h3>
     <div class="small muted">Inspecciones en este celular: ${activos().length} · Pendientes por enviar: ${pendientes()}<br>
-    Base conjunta: ${CONFIG.API_URL ? 'Google Sheets conectada' : '<b>no configurada</b> (ver LEEME)'}<br>
+    Base conjunta: ${conectado() ? 'conectada' : '<b>no configurada</b>: los datos quedan solo en este celular'}<br>
     Última sincronización: ${S.ultimaSync ? new Date(S.ultimaSync).toLocaleString('es-CO') : 'nunca'}</div>
     <div style="height:10px"></div><button class="btn ghost" data-act="syncTodo">Descargar todo el historial</button>
   </div>`;
@@ -681,7 +701,7 @@ function guardar() {
   // conserva los enlaces de Drive de fotos que se subieron mientras se editaba
   const prev = DB[d.id];
   if (prev && prev.fotos) Object.values(prev.fotos).flat().forEach(pf => {
-    Object.values(d.fotos).flat().forEach(f => { if (f.id === pf.id && pf.drive) f.drive = pf.drive; });
+    Object.values(d.fotos).flat().forEach(f => { if (f.id === pf.id && pf.sub) f.sub = true; });
   });
   const now = new Date().toISOString();
   const rec = limpio(d);
@@ -705,7 +725,7 @@ function eliminar() {
 }
 
 /* ================== EXPORTAR ================== */
-const fotosTexto = r => Object.entries(r.fotos || {}).flatMap(([id, arr]) => arr.filter(f => f.drive).map(f => `${LABEL[id]}: https://drive.google.com/file/d/${f.drive}/view`));
+const fotosTexto = r => Object.entries(r.fotos || {}).filter(([, arr]) => arr.length).map(([id, arr]) => `${LABEL[id]}: ${arr.length} foto${arr.length > 1 ? 's' : ''}`);
 const novTexto = r => ITEMS.filter(([id]) => r.items[id] === 'M').map(([id, lab]) => lab + (r.obsItems && r.obsItems[id] ? ': ' + r.obsItems[id] : ''));
 function hojaAOA(carro, lunes) {
   const f = fechasSemana(lunes);
@@ -805,7 +825,7 @@ async function verFoto(el) {
   img.removeAttribute('src');
   v.querySelector('p').textContent = el.dataset.titulo || '';
   v.classList.add('on');
-  const src = await srcFoto({ id: el.dataset.foto, drive: el.dataset.drive });
+  const src = await srcFoto({ id: el.dataset.foto, sub: el.dataset.sub === '1' });
   if (src) img.src = src; else v.querySelector('p').textContent = 'Foto no disponible sin conexión';
 }
 document.addEventListener('click', e => {
