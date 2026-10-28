@@ -216,6 +216,8 @@ const SECCIONES = [
 const ITEMS = SECCIONES.flatMap(s => s.items);
 const LABEL = Object.fromEntries(ITEMS);
 const VALS = [['B', 'Bueno'], ['M', 'Malo'], ['NA', 'No aplica']];
+const CARGOS = ['Camarero', 'Anfitrión de servicios'];
+const quien = r => `${r.camarero || ''}${r.cargo ? ' · ' + r.cargo : ''}`;
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const DIAS_C = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -401,13 +403,17 @@ async function sync(todo = false, avisar = false) {
 
 /* ================== VISTAS ================== */
 function vBienvenida() {
+  const editando = !!(ME.nombre && ME.cargo);
   return `<div class="card" style="margin-top:20px">
-    <h2>Bienvenido</h2>
-    <p class="muted">Escribe tu nombre una sola vez. Quedará guardado en este celular para tus registros.</p>
-    <label class="f">Nombre del camarero</label>
-    <input class="t" id="nombreIn" autocomplete="name" placeholder="Ej: Juan Pérez">
+    <h2>${editando ? 'Tus datos' : 'Bienvenido'}</h2>
+    <p class="muted">Se guardan en este celular y aparecen en cada inspección que registres.</p>
+    <label class="f">Cargo</label>
+    <div class="tabs" id="cargoSel">${CARGOS.map(c => `<button type="button" class="${S.cargoTmp === c ? 'on' : ''}" data-act="elegirCargo" data-cargo="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+    <label class="f" for="nombreIn">Nombre</label>
+    <input class="t" id="nombreIn" autocomplete="name" placeholder="Ej: Juan Pérez" value="${esc(ME.nombre)}">
     <div style="height:12px"></div>
-    <button class="btn" data-act="guardarNombre">Continuar</button>
+    <button class="btn" data-act="guardarNombre">${editando ? 'Guardar' : 'Continuar'}</button>
+    ${editando ? '<div style="height:8px"></div><button class="btn ghost" data-act="cancelarPerfil">Cancelar</button>' : ''}
   </div>`;
 }
 
@@ -421,7 +427,7 @@ function dotsCarro(carro, lunes) {
 }
 const filaInsp = r => `<div class="insp" data-act="editar" data-id="${esc(r.id)}">
   <span class="h">${esc(r.hora || '—')}</span>
-  <span class="n">${esc(r.camarero)}${nFotos(r) ? ` · ${nFotos(r)} foto${nFotos(r) > 1 ? 's' : ''}` : ''}</span>
+  <span class="n">${esc(quien(r))}${nFotos(r) ? ` · ${nFotos(r)} foto${nFotos(r) > 1 ? 's' : ''}` : ''}</span>
   ${tieneM(r) ? '<span class="badge mal">Novedades</span>' : '<span class="badge ok">OK</span>'}</div>`;
 
 function vInicio() {
@@ -430,6 +436,7 @@ function vInicio() {
   <div class="row between"><div>
     <div class="muted small">Hola,</div>
     <h2>${esc(ME.nombre)}</h2>
+    <div class="small muted">${esc(ME.cargo || '')}</div>
   </div><button class="link" data-act="cambiarNombre">Cambiar</button></div>
   <div class="notice">Hoy es <b>${fmtL(h)}</b> · <b>Día ${diaNum(hoy())}</b><br><span class="small">Semana del ${fmtC(lunes)} al ${fmtC(fechasSemana(lunes)[6])}</span></div>
   ${CONFIG.CARROS.map(c => {
@@ -464,10 +471,12 @@ function vForm() {
         <input class="t" type="time" id="fHora" data-field="hora" value="${esc(d.hora)}"></div>
     </div>
     <div class="small" style="margin-top:6px"><b>Día ${d.dia}</b> · ${DIAS[d.dia - 1]} · Semana del ${fmtC(d.semana)} al ${fmtC(fechasSemana(d.semana)[6])}</div>
-    <label class="f">Nombre del camarero</label>
+    <label class="f">Cargo</label>
+    <div class="tabs">${CARGOS.map(c => `<button type="button" class="${d.cargo === c ? 'on' : ''}" data-act="formCargo" data-cargo="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+    <label class="f" for="fCamarero">Nombre</label>
     <input class="t" id="fCamarero" data-field="camarero" value="${esc(d.camarero)}" placeholder="Nombre completo">
   </div>
-  ${d._existe ? `<div class="notice">Editando la inspección de las ${hora12(d.hora)} hecha por ${esc(d.camarero)}.</div>` : ''}
+  ${d._existe ? `<div class="notice">Editando la inspección de las ${hora12(d.hora)} hecha por ${esc(quien(d))}.</div>` : ''}
   <div class="row between" style="margin-top:6px">
     <span class="small muted">B: Bueno · M: Malo · NA: No aplica</span>
     <button class="link" data-act="todoB">Todo lo pendiente en B</button>
@@ -540,7 +549,7 @@ function tablaSemana(carro, lunes) {
       if (id === 'desinfeccion') html += `<tr><td class="desc small muted">↳ Realizada AM / PM</td>${cols.map(c => c.r ? `<td class="small">${[c.r.desinfAM && 'AM', c.r.desinfPM && 'PM'].filter(Boolean).join(' ') || '—'}</td>` : vacia(c)).join('')}</tr>`;
     });
   });
-  html += `<tr class="sec"><td colspan="${span}">Camarero</td></tr><tr><td class="desc">Registró</td>${cols.map(c => c.r ? `<td class="small" title="${esc(c.r.camarero)}">${esc(iniciales(c.r.camarero))}</td>` : vacia(c)).join('')}</tr>`;
+  html += `<tr class="sec"><td colspan="${span}">Responsable</td></tr><tr><td class="desc">Registró</td>${cols.map(c => c.r ? `<td class="small" title="${esc(quien(c.r))}">${esc(iniciales(c.r.camarero))}</td>` : vacia(c)).join('')}</tr>`;
   return html + `</tbody></table></div>`;
 }
 function observacionesSemana(carro, lunes) {
@@ -549,7 +558,7 @@ function observacionesSemana(carro, lunes) {
     const nov = ITEMS.filter(([id]) => r.items[id] === 'M').map(([id, lab]) => `<b style="color:var(--m)">${esc(lab)}</b>${r.obsItems && r.obsItems[id] ? ': ' + esc(r.obsItems[id]) : ''}`);
     const fotos = Object.entries(r.fotos || {}).flatMap(([id, arr]) => arr.map(f => thumbHTML(f, null, `${LABEL[id]} · ${r.carro} · ${fmtC(r.fecha)} ${r.hora || ''}`)));
     if (!nov.length && !r.obs && !fotos.length) return '';
-    return `<div class="list-item"><div class="small muted">Día ${r.dia} · ${fmtL(r.fecha)} · ${esc(r.hora || '')} · ${esc(r.camarero)}</div>
+    return `<div class="list-item"><div class="small muted">Día ${r.dia} · ${fmtL(r.fecha)} · ${esc(r.hora || '')} · ${esc(quien(r))}</div>
       ${nov.length ? `<div class="small">${nov.join(' · ')}</div>` : ''}${r.obs ? `<div class="small">“${esc(r.obs)}”</div>` : ''}
       ${fotos.length ? `<div class="fotos">${fotos.join('')}</div>` : ''}</div>`;
   }).filter(Boolean);
@@ -565,7 +574,7 @@ function vSemana() {
   <div class="tabs" style="margin:10px 0 12px">${CONFIG.CARROS.map(c => `<button class="${c === S.carroSemana ? 'on' : ''}" data-act="semCarro" data-carro="${esc(c)}">${esc(c)}</button>`).join('')}</div>
   ${weekNav()}
   ${tablaSemana(S.carroSemana, S.semana)}
-  <p class="small muted">Cada columna es una inspección con su hora. Toca el encabezado para verla o editarla; en un día vacío, para llenarlo. El punto amarillo indica que ese ítem tiene foto. En "Registró" van las iniciales del camarero.</p>
+  <p class="small muted">Cada columna es una inspección con su hora. Toca el encabezado para verla o editarla; en un día vacío, para llenarlo. El punto amarillo indica que ese ítem tiene foto. En "Registró" van las iniciales de quien hizo la inspección.</p>
   ${observacionesSemana(S.carroSemana, S.semana)}`;
 }
 
@@ -580,7 +589,7 @@ function vAdmin() {
   const novedades = [];
   all.forEach(r => ITEMS.forEach(([id, lab]) => { if (r.items[id] === 'M') novedades.push({r, id, lab, obs: (r.obsItems || {})[id]}); }));
   novedades.sort((a, b) => (a.r.fecha + a.r.hora) < (b.r.fecha + b.r.hora) ? -1 : 1);
-  const camareros = [...new Set(all.map(r => r.camarero).filter(Boolean))];
+  const camareros = [...new Set(all.map(quien).filter(Boolean))];
   return `<div class="row between"><h2>Panel administrador</h2><button class="link" data-act="lock">Salir</button></div>
   <div style="height:8px"></div>${weekNav()}
   <div class="grid2">${CONFIG.CARROS.map(c => {
@@ -599,10 +608,10 @@ function vAdmin() {
   </div>
   <div class="card"><h3>Ítems en mal estado (${novedades.length})</h3>
     ${novedades.length ? novedades.map(n => `<div class="list-item"><div><b>${esc(n.r.carro)}</b> · <span style="color:var(--m)">${esc(n.lab)}</span></div>
-      <div class="small muted">Día ${n.r.dia} · ${fmtL(n.r.fecha)} · ${esc(n.r.hora || '')} · ${esc(n.r.camarero)}</div>${n.obs ? `<div class="small">“${esc(n.obs)}”</div>` : ''}
+      <div class="small muted">Día ${n.r.dia} · ${fmtL(n.r.fecha)} · ${esc(n.r.hora || '')} · ${esc(quien(n.r))}</div>${n.obs ? `<div class="small">“${esc(n.obs)}”</div>` : ''}
       ${(n.r.fotos && n.r.fotos[n.id] || []).length ? `<div class="fotos">${n.r.fotos[n.id].map(f => thumbHTML(f, null, `${n.lab} · ${n.r.carro} · ${fmtC(n.r.fecha)} ${n.r.hora || ''}`)).join('')}</div>` : ''}</div>`).join('') : '<div class="small muted">Ninguno esta semana.</div>'}
   </div>
-  <div class="card"><h3>Camareros esta semana</h3><div class="small">${camareros.length ? camareros.map(esc).join(', ') : '<span class="muted">Ninguno</span>'}</div></div>
+  <div class="card"><h3>Personal que registró esta semana</h3><div class="small">${camareros.length ? camareros.map(esc).join(', ') : '<span class="muted">Ninguno</span>'}</div></div>
   <div class="card"><h3>Exportar</h3>
     <div style="display:grid;gap:8px">
       <button class="btn" data-act="xlsSemana">Excel de esta semana (formato hoja)</button>
@@ -621,7 +630,11 @@ function vAdmin() {
 /* ================== RENDER ================== */
 function render() {
   const main = $('#main');
-  if (!ME.nombre) { main.innerHTML = vBienvenida(); $('#savebarHost').innerHTML = ''; return; }
+  if (!ME.nombre || !ME.cargo || S.view === 'perfil') {
+    if (S.cargoTmp === undefined) S.cargoTmp = ME.cargo || '';
+    main.innerHTML = vBienvenida(); $('#savebarHost').innerHTML = '';
+    document.querySelectorAll('#nav button').forEach(b => b.classList.remove('on')); pintarSync(); return;
+  }
   if (S.view === 'form' && !S.draft) nuevoDraft(CONFIG.CARROS[0], toISO(hoy()));
   main.innerHTML = { inicio: vInicio, form: vForm, semana: vSemana, admin: vAdmin }[S.view]();
   $('#savebarHost').innerHTML = S.view === 'form' ? savebarHTML() : '';
@@ -638,7 +651,7 @@ function nuevoDraft(carro, fecha) {
   S.draft = {
     id: uid(), carro, fecha, semana, dia: diaNum(parseISO(fecha)),
     hora: fecha === toISO(hoy()) ? ahoraHM() : '',
-    camarero: ME.nombre, items: {}, obsItems: {}, fotos: {},
+    camarero: ME.nombre, cargo: ME.cargo || '', items: {}, obsItems: {}, fotos: {},
     desinfAM: false, desinfPM: false, obs: '',
     gestor: prev ? prev.gestor || '' : '', conductor: prev ? prev.conductor || '' : '',
     _existe: false
@@ -686,7 +699,8 @@ async function agregarFotos(id, files) {
 }
 function guardar() {
   const d = S.draft;
-  if (!d.camarero.trim()) { toast('Escribe el nombre del camarero'); $('#fCamarero').focus(); return; }
+  if (!d.cargo) { toast('Elige el cargo'); return; }
+  if (!d.camarero.trim()) { toast('Escribe el nombre'); $('#fCamarero').focus(); return; }
   if (!d.hora) { toast('Indica la hora de la inspección'); $('#fHora').focus(); return; }
   const faltan = ITEMS.filter(([id]) => !d.items[id]);
   if (faltan.length) {
@@ -731,7 +745,7 @@ function hojaAOA(carro, lunes) {
   const f = fechasSemana(lunes);
   const cols = columnas(carro, lunes);
   const recs = cols.map(c => c.r).filter(Boolean);
-  const cams = [...new Set(recs.map(r => r.camarero))].join(', ');
+  const cams = [...new Set(recs.map(quien))].join(', ');
   const firm = recs.slice().reverse();
   const aoa = [
     ['INSPECCIÓN DIARIA CARROS DE GOLF', ...Array(Math.max(0, cols.length - 1)).fill(''), 'FOR-PSB-07'],
@@ -748,11 +762,11 @@ function hojaAOA(carro, lunes) {
       if (id === 'desinfeccion') aoa.push(['   Desinfección realizada (AM/PM)', ...cols.map(c => c.r ? [c.r.desinfAM && 'AM', c.r.desinfPM && 'PM'].filter(Boolean).join('-') : '')]);
     });
   });
-  aoa.push(['Camarero que registró', ...cols.map(c => c.r ? c.r.camarero : '')]);
+  aoa.push(['Registró (nombre · cargo)', ...cols.map(c => c.r ? quien(c.r) : '')]);
   aoa.push([]); aoa.push(['OBSERVACIONES']);
   recs.forEach(r => {
     const nov = novTexto(r);
-    if (nov.length || r.obs) aoa.push([`Día ${r.dia} (${fmtC(r.fecha)}) ${r.hora || ''} - ${r.camarero}`, [nov.join('; '), r.obs].filter(Boolean).join(' | ')]);
+    if (nov.length || r.obs) aoa.push([`Día ${r.dia} (${fmtC(r.fecha)}) ${r.hora || ''} - ${quien(r)}`, [nov.join('; '), r.obs].filter(Boolean).join(' | ')]);
   });
   const fotos = recs.flatMap(r => fotosTexto(r).map(t => [`Día ${r.dia} (${fmtC(r.fecha)}) ${r.hora || ''}`, t]));
   if (fotos.length) { aoa.push([]); aoa.push(['FOTOS DE EVIDENCIA']); fotos.forEach(x => aoa.push(x)); }
@@ -779,9 +793,9 @@ function xlsSemana() {
   XLSX.writeFile(wb, nombre + '.xlsx');
 }
 function xlsTodo() {
-  const head = ['Fecha', 'Hora', 'Semana (lunes)', 'Día', 'Día semana', 'Carro', 'Camarero', ...ITEMS.map(i => i[1]), 'Desinfección AM', 'Desinfección PM', 'Novedades', 'Observación general', 'Fotos', 'Gestor alojamiento', 'Conductor', 'Actualizado'];
+  const head = ['Fecha', 'Hora', 'Semana (lunes)', 'Día', 'Día semana', 'Carro', 'Nombre', 'Cargo', ...ITEMS.map(i => i[1]), 'Desinfección AM', 'Desinfección PM', 'Novedades', 'Observación general', 'Fotos', 'Gestor alojamiento', 'Conductor', 'Actualizado'];
   const rows = activos().sort((a, b) => (a.fecha + a.hora + a.carro) < (b.fecha + b.hora + b.carro) ? -1 : 1).map(r => [
-    r.fecha, r.hora || '', r.semana, r.dia, DIAS[r.dia - 1], r.carro, r.camarero, ...ITEMS.map(([id]) => r.items[id] || ''),
+    r.fecha, r.hora || '', r.semana, r.dia, DIAS[r.dia - 1], r.carro, r.camarero, r.cargo || '', ...ITEMS.map(([id]) => r.items[id] || ''),
     r.desinfAM ? 'Sí' : 'No', r.desinfPM ? 'Sí' : 'No', novTexto(r).join('; '),
     r.obs || '', fotosTexto(r).join('\n'), r.gestor || '', r.conductor || '', r.actualizado || '']);
   if (!window.XLSX) { descargarCSV('Inspecciones_todas.csv', [head, ...rows]); return; }
@@ -795,7 +809,7 @@ function printSemana() {
     const cols = columnas(c, S.semana);
     const recs = cols.map(x => x.r).filter(Boolean);
     const firm = recs.slice().reverse();
-    const cams = [...new Set(recs.map(r => r.camarero))].join(', ');
+    const cams = [...new Set(recs.map(quien))].join(', ');
     let rows = '';
     SECCIONES.forEach(s => {
       rows += `<tr class="s"><td colspan="${cols.length + 1}">${esc(s.t)}</td></tr>`;
@@ -805,13 +819,13 @@ function printSemana() {
     });
     const obs = recs.map(r => {
       const nov = novTexto(r);
-      return (nov.length || r.obs) ? `<div>Día ${r.dia} (${fmtC(r.fecha)}) ${esc(r.hora || '')} – ${esc(r.camarero)}: ${esc([nov.join('; '), r.obs].filter(Boolean).join(' | '))}</div>` : '';
+      return (nov.length || r.obs) ? `<div>Día ${r.dia} (${fmtC(r.fecha)}) ${esc(r.hora || '')} – ${esc(quien(r))}: ${esc([nov.join('; '), r.obs].filter(Boolean).join(' | '))}</div>` : '';
     }).join('');
     return `<div class="pg"><h1>INSPECCIÓN DIARIA CARROS DE GOLF</h1>
       <div class="hdr"><span>Nombre del colaborador: <b>${esc(cams)}</b></span><span>Carro: <b>${esc(c)}</b></span></div>
       <div class="hdr"><span>Semana del <b>${fmtC(f[0])}</b> al <b>${fmtC(f[6])}</b> de ${parseISO(f[6]).getFullYear()}</span><span>B - BUENO &nbsp; M - MALA &nbsp; NA - NO APLICA</span></div>
       <table><tr><th>DESCRIPCIÓN</th>${cols.map(x => `<th>DÍA ${x.i + 1}<br><small>${DIAS_C[x.i]} ${parseISO(x.f).getDate()}${x.r ? ' · ' + esc(x.r.hora || '') : ''}</small></th>`).join('')}</tr>${rows}
-      <tr><td class="d"><b>Camarero</b></td>${cols.map(x => `<td><small>${x.r ? esc(x.r.camarero) : ''}</small></td>`).join('')}</tr></table>
+      <tr><td class="d"><b>Registró</b></td>${cols.map(x => `<td><small>${x.r ? esc(quien(x.r)) : ''}</small></td>`).join('')}</tr></table>
       ${obs ? `<div style="margin-top:6px"><b>Observaciones:</b>${obs}</div>` : ''}
       <div class="firmas"><div>${esc((firm.find(r => r.gestor) || {}).gestor || '')}<br>GESTOR ALOJAMIENTO</div><div>${esc((firm.find(r => r.conductor) || {}).conductor || '')}<br>CONDUCTOR</div></div>
       <div style="text-align:right;margin-top:6px">FOR-PSB-07</div></div>`;
@@ -831,7 +845,7 @@ async function verFoto(el) {
 document.addEventListener('click', e => {
   const nav = e.target.closest('[data-nav]');
   if (nav) {
-    if (!ME.nombre) return;
+    if (!ME.nombre || !ME.cargo || S.view === 'perfil') return;
     if (nav.dataset.nav === 'form' && S.view !== 'form') nuevoDraft(CONFIG.CARROS[0], toISO(hoy()));
     return ir(nav.dataset.nav);
   }
@@ -839,13 +853,15 @@ document.addEventListener('click', e => {
   switch (b.dataset.act) {
     case 'sync': sync(false, true); break;
     case 'guardarNombre': {
-      const n = $('#nombreIn').value.trim(); if (!n) return toast('Escribe tu nombre');
-      ME.nombre = n; store.set('ig_me', ME); S.view = 'inicio'; render(); break;
+      const n = $('#nombreIn').value.trim();
+      if (!S.cargoTmp) return toast('Elige tu cargo');
+      if (!n) return toast('Escribe tu nombre');
+      ME.nombre = n; ME.cargo = S.cargoTmp; store.set('ig_me', ME); S.view = 'inicio'; render(); break;
     }
-    case 'cambiarNombre': {
-      const n = prompt('Nombre del camarero en este celular:', ME.nombre);
-      if (n && n.trim()) { ME.nombre = n.trim(); store.set('ig_me', ME); render(); } break;
-    }
+    case 'elegirCargo': S.cargoTmp = b.dataset.cargo; document.querySelectorAll('#cargoSel button').forEach(x => x.classList.toggle('on', x === b)); break;
+    case 'cambiarNombre': S.cargoTmp = ME.cargo || ''; S.view = 'perfil'; render(); break;
+    case 'cancelarPerfil': S.view = 'inicio'; render(); break;
+    case 'formCargo': S.draft.cargo = b.dataset.cargo; S.dirty = true; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
     case 'nuevo': nuevoDraft(b.dataset.carro, b.dataset.fecha || toISO(hoy())); ir('form'); break;
     case 'editar': editar(b.dataset.id); break;
     case 'verSemana': S.carroSemana = b.dataset.carro; S.semana = lunesISO(hoy()); ir('semana'); break;

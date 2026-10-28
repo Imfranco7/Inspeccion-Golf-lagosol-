@@ -5,6 +5,7 @@ Funciona sin internet: guarda en el celular y sincroniza con Supabase (datos y f
 
 ## Qué hace
 - Varias inspecciones por carro y por día, cada una con su **hora**.
+- Cargo (Camarero o Anfitrión de servicios) y nombre de quien registra.
 - Ítems B / M / N/A, observación por ítem en M, observación general, Gestor y Conductor.
 - **Fotos de evidencia** en cualquier ítem (cámara o galería), comprimidas a ~150 KB.
 - Hoja semanal igual al papel: una columna por inspección, agrupadas del Día 1 (lunes) al Día 7 (domingo).
