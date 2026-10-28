@@ -11,7 +11,7 @@ Funciona sin internet: guarda en el celular y sincroniza con Supabase (datos y f
 - **Fotos de evidencia** en cualquier ítem (cámara o galería), comprimidas a ~150 KB.
 - Hoja semanal igual al papel: una columna por inspección, agrupadas del Día 1 (lunes) al Día 7 (domingo).
 - Panel admin (PIN): días sin registro, ítems en mal estado con fotos, exportar Excel / PDF.
-- Eliminar una inspección hecha por error.
+- Cada inspección se abre en modo lectura; solo quien la registró (o un administrador con el PIN) puede editarla o eliminarla.
 
 ## Archivos
 | Archivo | Qué es |

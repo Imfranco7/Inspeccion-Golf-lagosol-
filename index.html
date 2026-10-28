@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0f4c3a">
 <meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Inspección Golf">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -20,8 +20,8 @@
   color-scheme: light;
   --bg:#f3f5f7; --surface:#ffffff; --subtle:#f7f8fa; --line:#e2e6ea; --line-2:#cfd5db;
   --text:#1b2530; --text-2:#4a5562; --muted:#7a8592;
-  --brand:#14594a; --brand-hover:#0f4a3d; --brand-soft:#e9f2ef;
-  --ok:#1d7a4c; --ok-soft:#e7f4ec; --bad:#b42318; --bad-soft:#fdeceb; --na:#5d6b7a; --na-soft:#eef1f4; --warn:#b25e09;
+  --brand:#0f4c3a; --brand-hover:#0b3b2d; --brand-soft:#e8f0ed; --brand-ink:#0f4c3a;
+  --ok:#1b7a47; --ok-soft:#e5f3eb; --bad:#c0362c; --bad-soft:#fcebea; --na:#5d6b7a; --na-soft:#eef1f4; --warn:#b25e09;
   --r:10px; --r-sm:8px;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -31,16 +31,18 @@ button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 
-/* Barra superior */
-.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
-  padding:calc(env(safe-area-inset-top) + 10px) max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));display:flex;align-items:center;gap:12px}
+/* Barra superior: verde institucional, texto blanco */
+.top{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff;
+  padding:calc(env(safe-area-inset-top) + 10px) max(16px,env(safe-area-inset-right)) 12px max(16px,env(safe-area-inset-left));display:flex;align-items:center;gap:10px}
 .top .ttl{flex:1;min-width:0}
-.top .ttl b{display:block;font-size:16px;font-weight:650;letter-spacing:-.1px}
-.top .ttl span{display:block;font-size:12px;color:var(--muted)}
-.sync{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
-.sync i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
-.sync.ok i{background:var(--ok)} .sync.error i{background:var(--bad)} .sync.wait i{background:var(--warn)} .sync.run i{background:var(--warn);animation:blink 1s infinite}
+.top .ttl b{display:block;font-size:16px;font-weight:600;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .ttl span{display:block;font-size:12px;opacity:.7}
+.sync{display:flex;align-items:center;gap:6px;font-size:12px;color:#fff;background:rgba(255,255,255,.12);border:0;border-radius:999px;padding:6px 10px;white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.6)}
+.sync.ok i{background:#6fe0a3} .sync.error i{background:#ff8a80} .sync.wait i{background:#ffc46b} .sync.run i{background:#ffc46b;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.25}}
+.yo{width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.12);color:#fff;font-weight:700;font-size:12px;padding:0;flex:none}
+.yo:empty{display:none}
 
 main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) calc(150px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:grid;gap:14px}
 
@@ -181,6 +183,71 @@ td.fut{background:var(--subtle)}
 .empty{padding:6px 0;color:var(--muted);font-size:14px}
 .note{font-size:13px;color:var(--text-2);background:var(--brand-soft);border-radius:var(--r-sm);padding:10px 12px}
 
+/* Inicio */
+.hero{display:grid;gap:2px;padding:2px 2px 0}
+.hero .saludo{margin:0;font-size:14px;color:var(--text-2)}
+.hero h1{font-size:24px;letter-spacing:-.4px}
+.hero p{margin:2px 0 0}
+.carro{display:grid;gap:14px}
+.carro-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.carro-h h2{font-size:17px}
+.carro-h p{margin:2px 0 0}
+.carro-a{display:flex;gap:8px}
+.estado{font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;white-space:nowrap}
+.estado.ok{background:var(--ok-soft);color:var(--ok)} .estado.bad{background:var(--bad-soft);color:var(--bad)} .estado.pend{background:#fff4e5;color:#9a5a00}
+/* Tira de días (columnas DÍA 1–7 del formato) */
+.dias{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dia{display:grid;justify-items:center;gap:4px}
+.dia .m{position:relative;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line-2);color:#fff;background:var(--surface)}
+.dia .m svg{width:16px;height:16px}
+.dia .m em{position:absolute;top:-5px;right:-6px;font-style:normal;font-size:10px;font-weight:700;background:var(--text);color:#fff;border-radius:999px;min-width:16px;height:16px;line-height:16px;padding:0 4px}
+.dia .d{font-size:11px;color:var(--muted)}
+.dia.ok .m{background:var(--ok);border-color:var(--ok)}
+.dia.mal .m{background:var(--bad);border-color:var(--bad)}
+.dia.falta .m{border-style:dashed;border-color:#e3a39d;background:#fdf6f5}
+.dia.hoy .m{border:2px solid var(--brand)}
+.dia.hoy .d{color:var(--brand);font-weight:700}
+.dia.fut .m{background:var(--subtle);border-color:var(--line)}
+.leyenda{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:12px;color:var(--muted);margin:0}
+.leyenda span{display:inline-flex;align-items:center;gap:6px}
+.leyenda .dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.leyenda .dot.ok{background:var(--ok)} .leyenda .dot.mal{background:var(--bad)} .leyenda .dot.falta{border:1.5px dashed #e3a39d}
+/* Listas tocables */
+.lista{padding-bottom:4px}
+.lista h2{margin-bottom:4px}
+button.li{width:100%;background:none;border:0;border-top:1px solid var(--line);text-align:left;color:inherit;font:inherit}
+.lista h2+button.li{border-top:0}
+.li .n{display:grid;gap:1px;white-space:normal}
+.li .n b{font-weight:600;color:var(--text);font-size:14px}
+.li .n span{font-size:12px;color:var(--muted)}
+.li .chev{width:16px;height:16px;color:var(--muted);flex:none}
+.li.tap:active{background:var(--subtle)}
+/* Detalle */
+.volver{display:inline-flex;align-items:center;gap:2px;background:none;border:0;padding:4px 0;color:var(--brand);font-weight:600;font-size:15px;justify-self:start}
+.volver svg{width:18px;height:18px}
+.det-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin:0}
+.meta dt{font-size:12px;color:var(--muted)}
+.meta dd{margin:2px 0 0;font-weight:600;font-size:15px}
+.meta dd small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.conteo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.conteo div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:grid}
+.conteo b{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums}
+.conteo span{font-size:12px;color:var(--muted)}
+.conteo .ok b{color:var(--ok)} .conteo .bad b{color:var(--bad)} .conteo .na b{color:var(--na)}
+.novs{border-color:#f1c9c4}
+.novs h2{color:var(--bad);margin-bottom:4px}
+.nov{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line)}
+.novs h2+.nov{border-top:0}
+.nov p{margin:0;font-size:14px;color:var(--text-2)}
+.obs-txt{margin:6px 0 0;font-size:14px;color:var(--text-2);white-space:pre-wrap}
+ul.res{list-style:none;margin:0;padding:0}
+ul.res li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+ul.res li:first-child{border-top:0}
+ul.res li>span{display:grid;gap:6px;min-width:0}
+ul.res small{font-size:12px;color:var(--muted)}
+ul.res em{font-style:normal;font-weight:700;font-size:12px;min-width:38px;text-align:center;padding:4px 0;border-radius:6px}
+ul.res em.vB{background:var(--ok-soft);color:var(--ok)} ul.res em.vM{background:var(--bad);color:#fff} ul.res em.vNA{background:var(--na-soft);color:var(--na)}
 .toast{position:fixed;left:50%;bottom:calc(130px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:#1b2530;color:#fff;padding:10px 16px;border-radius:var(--r-sm);font-size:14px;opacity:0;transition:.2s;z-index:60;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .pin{font-size:24px;letter-spacing:10px;text-align:center}
@@ -207,14 +274,15 @@ td.fut{background:var(--subtle)}
 </head>
 <body>
 <header class="top">
-  <div class="ttl"><b>Inspección de carros</b><span>Carros de golf · FOR-PSB-07</span></div>
-  <button class="sync" id="syncPill" data-act="sync"><i></i><span>…</span></button>
+  <div class="ttl"><b>Inspección de carros de golf</b><span>Formato FOR-PSB-07</span></div>
+  <button class="sync" id="syncPill" data-act="sync" aria-label="Estado de sincronización"><i></i><span>…</span></button>
+  <button class="yo" id="yoBtn" data-act="perfil" aria-label="Mis datos"></button>
 </header>
 <main id="main"></main>
 <div id="savebarHost"></div>
 <nav class="bottom" id="nav">
   <button data-nav="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/></svg>Inicio</button>
-  <button data-nav="form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11.5l2 2 4-4M9 17h6"/></svg>Registrar</button>
+  <button data-nav="form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M12 10v6M9 13h6"/></svg>Nueva</button>
   <button data-nav="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Semana</button>
   <button data-nav="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Admin</button>
 </nav>
@@ -278,6 +346,7 @@ const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', '
 const DIAS_C = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const ICO_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>';
+const ICO_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
 const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 /* ================== UTILIDADES ================== */
@@ -366,6 +435,8 @@ store.set('ig_me', ME);
 const persist = () => { if (!store.set('ig_records', DB)) toast('Memoria del celular llena'); };
 const S = {
   view: 'inicio',
+  prevView: 'inicio',
+  verId: null,
   semana: lunesISO(hoy()),
   carroSemana: CONFIG.CARROS[0],
   draft: null,
@@ -468,19 +539,27 @@ async function sync(todo = false, avisar = false) {
 
 /* ================== PIEZAS DE INTERFAZ ================== */
 const segc = (vals, actual, act, id) => `<div class="segc"${id ? ` id="${id}"` : ''}>${vals.map(v => `<button type="button" class="${v === actual ? 'on' : ''}" data-act="${act}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
-function semanaMini(carro, lunes) {
+const ICO_ALERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 6v7M12 17.5v.5"/></svg>';
+const ICO_CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+/* Tira de 7 días, igual a las columnas DÍA 1–7 del formato */
+function tiraDias(carro, lunes) {
   const h = toISO(hoy());
-  return `<div class="week">${fechasSemana(lunes).map((f, i) => {
+  return `<div class="dias" role="list">${fechasSemana(lunes).map((f, i) => {
     const rs = recsDia(carro, f);
-    const cls = rs.length ? (rs.some(tieneM) ? 'mal' : 'ok') : f < h ? 'falta' : '';
-    return `<div class="${cls}${f === h ? ' hoy' : ''}"><b></b>${DIAS_C[i].slice(0, 1)}${i === 2 ? 'i' : ''}</div>`;
+    const cls = rs.length ? (rs.some(tieneM) ? 'mal' : 'ok') : f < h ? 'falta' : f === h ? 'hoy' : 'fut';
+    const ic = cls === 'ok' ? ICO_OK : cls === 'mal' ? ICO_ALERT : '';
+    const txt = cls === 'ok' ? 'sin novedades' : cls === 'mal' ? 'con novedades' : cls === 'falta' ? 'sin registro' : cls === 'hoy' ? 'hoy, pendiente' : 'próximo';
+    return `<div class="dia ${cls}" role="listitem" aria-label="${DIAS[i]}: ${txt}"><span class="m">${ic}${rs.length > 1 ? `<em>${rs.length}</em>` : ''}</span><span class="d">${['L', 'M', 'Mi', 'J', 'V', 'S', 'D'][i]}</span></div>`;
   }).join('')}</div>`;
 }
 const estadoChip = r => tieneM(r) ? `<span class="chip bad">${plural(nM(r), 'novedad', 'novedades')}</span>` : '<span class="chip ok">Sin novedades</span>';
-const filaInsp = (r, conFecha) => `<div class="li tap" data-act="editar" data-id="${esc(r.id)}">
+/* Fila de inspección: abre la vista de solo lectura */
+const filaInsp = (r, opts = {}) => `<button class="li tap" data-act="ver" data-id="${esc(r.id)}">
   <span class="h">${esc(r.hora || '—')}</span>
-  <span class="n">${conFecha ? `${DIAS_C[r.dia - 1]} ${parseISO(r.fecha).getDate()} · ` : ''}${esc(r.camarero)}${nFotos(r) ? ` · ${plural(nFotos(r), 'foto', 'fotos')}` : ''}</span>
-  ${estadoChip(r)}</div>`;
+  <span class="n"><b>${opts.carro ? 'Carro ' + esc(r.carro) : opts.fecha ? `${DIAS[r.dia - 1]} ${parseISO(r.fecha).getDate()}` : esc(r.camarero)}</b>
+    <span>${opts.carro || opts.fecha ? esc(r.camarero) : esc(r.cargo || '')}${nFotos(r) ? `, ${plural(nFotos(r), 'foto', 'fotos')}` : ''}</span></span>
+  ${estadoChip(r)}${ICO_CHEV}</button>`;
+const puedeEditar = r => !!r && (S.admin || (r.dispositivo && r.dispositivo === ME.dispositivo) || (!!r.camarero && r.camarero === ME.nombre && (r.cargo || '') === (ME.cargo || '')));
 function weekNav() {
   const f = fechasSemana(S.semana);
   const actual = S.semana === lunesISO(hoy());
@@ -510,30 +589,75 @@ function vPerfil() {
 
 function vInicio() {
   const h = toISO(hoy()), lunes = lunesISO(hoy());
+  const deHoy = activos().filter(r => r.fecha === h).sort((a, b) => (a.hora || '') < (b.hora || '') ? 1 : -1);
   return `
-  <div class="who">
-    <div class="avatar">${esc(iniciales(ME.nombre))}</div>
-    <div class="n"><b>${esc(ME.nombre)}</b><span>${esc(ME.cargo)}</span></div>
-    <button class="link" data-act="perfil">Cambiar</button>
-  </div>
-  <div class="head"><h1>${fmtL(h)}</h1><span class="small muted">Día ${diaNum(hoy())} de 7</span></div>
+  <section class="hero">
+    <p class="saludo">Hola, ${esc(ME.nombre.split(' ')[0])}</p>
+    <h1>${DIAS[diaNum(hoy()) - 1]} ${parseISO(h).getDate()} de ${['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][parseISO(h).getMonth()]}</h1>
+    <p class="small muted">Día ${diaNum(hoy())} de la semana del ${fmtC(lunes)} al ${fmtC(fechasSemana(lunes)[6])}</p>
+  </section>
   ${CONFIG.CARROS.map(c => {
-    const rs = recsDia(c, h);
-    return `<div class="card stack">
-      <div class="head"><h2>Carro ${esc(c)}</h2>
-        ${rs.length ? (rs.some(tieneM) ? `<span class="chip bad">Hoy con novedades</span>` : `<span class="chip ok">Hoy: ${plural(rs.length, 'inspección', 'inspecciones')}</span>`) : '<span class="chip pend">Hoy sin inspección</span>'}
+    const rs = recsDia(c, h), ult = rs[rs.length - 1];
+    const estado = !rs.length ? '<span class="estado pend">Pendiente hoy</span>'
+      : rs.some(tieneM) ? `<span class="estado bad">Con novedades hoy</span>` : `<span class="estado ok">Revisado hoy</span>`;
+    return `<article class="card carro">
+      <div class="carro-h">
+        <div><h2>Carro ${esc(c)}</h2><p class="xs muted">${rs.length ? `Última inspección a las ${hora12(ult.hora)}` : 'Aún no se inspecciona hoy'}</p></div>
+        ${estado}
       </div>
-      ${semanaMini(c, lunes)}
-      <div class="row">
-        <button class="btn" data-act="nuevo" data-carro="${esc(c)}">Nueva inspección</button>
-        <button class="btn sec sm" data-act="verSemana" data-carro="${esc(c)}">Ver semana</button>
+      ${tiraDias(c, lunes)}
+      <div class="carro-a">
+        <button class="btn" data-act="nuevo" data-carro="${esc(c)}">Iniciar inspección</button>
+        <button class="btn sec sm" data-act="verSemana" data-carro="${esc(c)}">Semana</button>
       </div>
-      ${rs.length ? `<details class="acc" data-key="hoy${esc(c)}" style="border:0;margin:0 -14px -14px;border-top:1px solid var(--line);border-radius:0">
-        <summary><div class="st"><b style="font-size:14px">Inspecciones de hoy (${rs.length})</b></div></summary>
-        <div class="acc-body">${rs.map(r => filaInsp(r)).join('')}</div></details>` : ''}
-    </div>`;
+    </article>`;
   }).join('')}
-  <p class="xs muted" style="margin:0">Barras de la semana: verde sin novedades · rojo con novedades · rosado día sin registro.</p>`;
+  <section class="card lista">
+    <h2>Inspecciones de hoy</h2>
+    ${deHoy.length ? deHoy.map(r => filaInsp(r, { carro: true })).join('') : '<p class="empty">Todavía no hay inspecciones hoy. Empieza con el botón del carro que vas a revisar.</p>'}
+  </section>
+  <p class="leyenda"><span><i class="dot ok"></i>Sin novedades</span><span><i class="dot mal"></i>Con novedades</span><span><i class="dot falta"></i>Sin registro</span></p>`;
+}
+
+/* ---------- Detalle (solo lectura) ---------- */
+function vDetalle() {
+  const r = DB[S.verId];
+  if (!r || r.eliminado) return `<button class="volver" data-act="volver">${ICO_BACK}Volver</button><p class="empty">Esta inspección ya no existe.</p>`;
+  const cuenta = { B: 0, M: 0, NA: 0 };
+  Object.values(r.items || {}).forEach(v => { if (cuenta[v] !== undefined) cuenta[v]++; });
+  const nov = ITEMS.filter(([id]) => r.items[id] === 'M');
+  const fotosDe = id => (r.fotos && r.fotos[id] || []).map(f => thumbHTML(f, null, `${LABEL[id]}, carro ${r.carro}, ${fmtC(r.fecha)} ${r.hora || ''}`)).join('');
+  const editable = puedeEditar(r);
+  return `
+  <button class="volver" data-act="volver">${ICO_BACK}Volver</button>
+  <div class="det-h">
+    <h1>Carro ${esc(r.carro)}</h1>
+    ${tieneM(r) ? `<span class="estado bad">${plural(cuenta.M, 'novedad', 'novedades')}</span>` : '<span class="estado ok">Sin novedades</span>'}
+  </div>
+  <dl class="meta card">
+    <div><dt>Fecha</dt><dd>${DIAS[r.dia - 1]} ${fmtC(r.fecha)}</dd></div>
+    <div><dt>Hora</dt><dd>${hora12(r.hora)}</dd></div>
+    <div><dt>Día del formato</dt><dd>Día ${r.dia}</dd></div>
+    <div><dt>Registró</dt><dd>${esc(r.camarero)}<small>${esc(r.cargo || '')}</small></dd></div>
+  </dl>
+  <div class="conteo">
+    <div class="ok"><b>${cuenta.B}</b><span>Bueno</span></div>
+    <div class="bad"><b>${cuenta.M}</b><span>Malo</span></div>
+    <div class="na"><b>${cuenta.NA}</b><span>No aplica</span></div>
+  </div>
+  ${nov.length ? `<section class="card novs"><h2>Ítems en mal estado</h2>${nov.map(([id, lab]) => `<div class="nov">
+      <b>${esc(lab)}</b>${r.obsItems && r.obsItems[id] ? `<p>${esc(r.obsItems[id])}</p>` : '<p class="muted">Sin descripción</p>'}
+      ${fotosDe(id) ? `<div class="fotos">${fotosDe(id)}</div>` : ''}</div>`).join('')}</section>` : ''}
+  ${r.obs ? `<section class="card"><h2>Observaciones</h2><p class="obs-txt">${esc(r.obs)}</p></section>` : ''}
+  ${SECCIONES.map((s, i) => {
+    const m = s.items.filter(([id]) => r.items[id] === 'M').length;
+    return acc('d' + i, `${i + 1}. ${s.t}`, m ? plural(m, 'novedad', 'novedades') : 'Todo en orden', `<ul class="res">${s.items.map(([id, lab]) => {
+      const v = r.items[id] || '';
+      return `<li><span>${esc(lab)}${id === 'desinfeccion' ? `<small>Realizada: ${[r.desinfAM && 'AM', r.desinfPM && 'PM'].filter(Boolean).join(' y ') || 'no marcada'}</small>` : ''}${v !== 'M' && fotosDe(id) ? `<span class="fotos">${fotosDe(id)}</span>` : ''}</span><em class="v${v}">${v === 'NA' ? 'N/A' : v || '—'}</em></li>`;
+    }).join('')}</ul>`, false);
+  }).join('')}
+  ${editable ? `<button class="btn" data-act="editar" data-id="${esc(r.id)}">Editar inspección</button>`
+    : `<p class="note">Solo ${esc(r.camarero)} puede editar esta inspección desde su celular, o un administrador desde el panel.</p>`}`;
 }
 
 /* ---------- Formulario ---------- */
@@ -550,16 +674,16 @@ function subSec(s, d) {
 function vForm() {
   const d = S.draft;
   return `
-  <h1>${d._existe ? 'Editar inspección' : 'Nueva inspección'}</h1>
+  ${d._existe ? `<button class="volver" data-act="cancelarEdicion">${ICO_BACK}Cancelar edición</button>` : ''}<h1>${d._existe ? 'Editar inspección' : 'Nueva inspección'}</h1>
   <div class="card stack">
     <div><span class="lbl">Carro</span>${segc(CONFIG.CARROS, d.carro, 'formCarro')}</div>
     <div class="grid2">
       <div><label class="lbl" for="fFecha">Fecha</label><input class="t" type="date" id="fFecha" value="${d.fecha}" max="${toISO(hoy())}"></div>
       <div><label class="lbl" for="fHora">Hora</label><input class="t" type="time" id="fHora" data-field="hora" value="${esc(d.hora)}"></div>
     </div>
-    <div class="xs muted">Día ${d.dia} · ${DIAS[d.dia - 1]} · semana del ${fmtC(d.semana)} al ${fmtC(fechasSemana(d.semana)[6])}</div>
+    <div class="xs muted">${DIAS[d.dia - 1]}, día ${d.dia} de la semana del ${fmtC(d.semana)} al ${fmtC(fechasSemana(d.semana)[6])}</div>
     <div class="who"><div class="avatar">${esc(iniciales(d.camarero))}</div>
-      <div class="n">${esc(d.camarero)}<span>${esc(d.cargo || '')}${d._existe ? ' · registró esta inspección' : ''}</span></div></div>
+      <div class="n">${esc(d.camarero)}<span>${esc(d.cargo || '')}</span></div><span class="xs muted">${d._existe ? 'Registró' : 'Registra'}</span></div>
   </div>
   <div class="progress" aria-hidden="true"><i id="progBar" style="width:${Math.round(ITEMS.filter(([id]) => d.items[id]).length / ITEMS.length * 100)}%"></i></div>
   ${SECCIONES.map((s, i) => `<details class="acc" data-sec="${i}"${S.abiertas.has(i) ? ' open' : ''}>
@@ -570,7 +694,7 @@ function vForm() {
     </div></details>`).join('')}
   ${acc('obs', 'Observaciones', 'Opcional', `<textarea class="t" data-field="obs" aria-label="Observaciones" placeholder="Cualquier novedad general del carro">${esc(d.obs)}</textarea>`, !!d.obs)}
   <div class="xs muted">B: bueno · M: malo · N/A: no aplica. Al marcar M puedes describir el daño. El ícono de cámara adjunta fotos.</div>
-  ${d._existe ? `<button class="btn danger" data-act="eliminar">Eliminar inspección</button>` : ''}`;
+  ${d._existe && puedeEditar(d) ? `<button class="btn danger" data-act="eliminar">Eliminar inspección</button>` : ''}`;
 }
 const fotosItemHTML = (id, d) => (d.fotos[id] || []).map(f => thumbHTML(f, id, LABEL[id])).join('');
 function extraHTML(id, d) {
@@ -616,7 +740,7 @@ function tablaSemana(carro, lunes) {
   };
   const span = cols.length + 1;
   let html = `<div class="tabla-wrap"><table class="hoja" style="min-width:${128 + cols.length * 46}px"><thead><tr><th class="desc">Descripción</th>${cols.map(c =>
-    `<th class="${c.f === h ? 'hoy' : ''}" data-act="${c.r ? 'editar' : c.f > h ? '' : 'nuevo'}" data-id="${c.r ? esc(c.r.id) : ''}" data-carro="${esc(carro)}" data-fecha="${c.f}">Día ${c.i + 1}<small>${DIAS_C[c.i]} ${parseISO(c.f).getDate()}</small><small>${c.r ? esc(c.r.hora || '') : '&nbsp;'}</small></th>`).join('')}</tr></thead><tbody>`;
+    `<th class="${c.f === h ? 'hoy' : ''}" data-act="${c.r ? 'ver' : c.f > h ? '' : 'nuevo'}" data-id="${c.r ? esc(c.r.id) : ''}" data-carro="${esc(carro)}" data-fecha="${c.f}">Día ${c.i + 1}<small>${DIAS_C[c.i]} ${parseISO(c.f).getDate()}</small><small>${c.r ? esc(c.r.hora || '') : '&nbsp;'}</small></th>`).join('')}</tr></thead><tbody>`;
   SECCIONES.forEach((s, si) => {
     html += `<tr class="sec"><td colspan="${span}">${si + 1}. ${esc(s.t)}</td></tr>`;
     s.items.forEach(([id, lab]) => {
@@ -627,35 +751,19 @@ function tablaSemana(carro, lunes) {
   html += `<tr class="sec"><td colspan="${span}">Responsable</td></tr><tr><td class="desc">Iniciales</td>${cols.map(c => c.r ? `<td class="xs" title="${esc(quien(c.r))}">${esc(iniciales(c.r.camarero))}</td>` : vacia(c)).join('')}</tr>`;
   return html + `</tbody></table></div>`;
 }
-function detalleInsp(r) {
-  const nov = ITEMS.filter(([id]) => r.items[id] === 'M');
-  const fotos = Object.entries(r.fotos || {}).flatMap(([id, arr]) => arr.map(f => thumbHTML(f, null, `${LABEL[id]} · ${r.carro} · ${fmtC(r.fecha)} ${r.hora || ''}`)));
-  return `<div class="stack" style="gap:8px;padding-top:8px">
-    <div class="small muted">${esc(quien(r))}</div>
-    ${nov.length ? `<div class="small">${nov.map(([id, lab]) => `<div><b style="color:var(--bad)">${esc(lab)}</b>${r.obsItems && r.obsItems[id] ? ': ' + esc(r.obsItems[id]) : ''}</div>`).join('')}</div>` : '<div class="small muted">Todos los ítems en buen estado o no aplica.</div>'}
-    ${r.obs ? `<div class="small">Observaciones: ${esc(r.obs)}</div>` : ''}
-    ${fotos.length ? `<div class="fotos">${fotos.join('')}</div>` : ''}
-    <div><button class="btn sec sm" data-act="editar" data-id="${esc(r.id)}">Abrir inspección</button></div>
-  </div>`;
-}
-function listaInspecciones(recs) {
-  if (!recs.length) return '<div class="empty">No hay inspecciones esta semana.</div>';
-  return recs.map(r => `<details class="acc" data-key="i${esc(r.id)}" style="border:0;border-top:1px solid var(--line);border-radius:0;margin:0 -14px">
-    <summary><div class="st"><b style="font-size:14px">${DIAS_C[r.dia - 1]} ${parseISO(r.fecha).getDate()} · ${esc(r.hora || '')}</b><span>${esc(r.camarero)}${nFotos(r) ? ' · ' + plural(nFotos(r), 'foto', 'fotos') : ''}</span></div>${estadoChip(r)}</summary>
-    <div class="acc-body">${detalleInsp(r)}</div></details>`).join('');
-}
 function vSemana() {
-  const recs = recsSemana(S.semana, S.carroSemana);
-  const conNov = recs.filter(r => tieneM(r) || r.obs || nFotos(r)).length;
-  return `<h1>Hoja semanal</h1>
+  const recs = recsSemana(S.semana, S.carroSemana).reverse();
+  return `<h1>Semana</h1>
   ${segc(CONFIG.CARROS, S.carroSemana, 'semCarro')}
   ${weekNav()}
-  <div class="card" style="padding-bottom:0">
-    <div class="head" style="margin-bottom:6px"><h2>Inspecciones (${recs.length})</h2>${conNov ? `<span class="small muted">${conNov} con detalle</span>` : ''}</div>
-    ${listaInspecciones(recs)}
-    <div style="height:14px"></div>
-  </div>
-  ${acc('hoja', 'Hoja FOR-PSB-07', 'Vista del formato de papel. Toca para desplegar.', tablaSemana(S.carroSemana, S.semana), false)}`;
+  <section class="card">
+    ${tiraDias(S.carroSemana, S.semana)}
+  </section>
+  <section class="card lista">
+    <h2>Inspecciones del carro ${esc(S.carroSemana)}</h2>
+    ${recs.length ? recs.map(r => filaInsp(r, { fecha: true })).join('') : '<p class="empty">No hay inspecciones de este carro en la semana.</p>'}
+  </section>
+  ${acc('hoja', 'Hoja FOR-PSB-07', 'El formato de papel con todas las inspecciones de la semana', tablaSemana(S.carroSemana, S.semana), false)}`;
 }
 
 /* ---------- Admin ---------- */
@@ -684,7 +792,7 @@ function vAdmin() {
       ${semanaMini(c, S.semana)}</div>`;
   }).join('')}</div>
   ${acc('nov', `Ítems en mal estado (${novedades.length})`, novedades.length ? 'Con detalle y fotos' : 'Ninguno esta semana',
-    novedades.length ? novedades.map(n => `<div class="li" style="align-items:flex-start;flex-direction:column;gap:4px">
+    novedades.length ? novedades.map(n => `<div class="li tap" data-act="ver" data-id="${esc(n.r.id)}" style="align-items:flex-start;flex-direction:column;gap:4px">
       <div><b>${esc(n.lab)}</b> <span class="small muted">· ${esc(n.r.carro)}</span></div>
       <div class="xs muted">${DIAS[n.r.dia - 1]} ${fmtC(n.r.fecha)} · ${esc(n.r.hora || '')} · ${esc(quien(n.r))}</div>
       ${n.obs ? `<div class="small">${esc(n.obs)}</div>` : ''}
@@ -712,18 +820,21 @@ function render(conservar) {
   if (conservar) guardarAbiertos();
   if (!ME.nombre || !ME.cargo || S.view === 'perfil') {
     if (S.cargoTmp === undefined) S.cargoTmp = ME.cargo || '';
-    main.innerHTML = vPerfil(); $('#savebarHost').innerHTML = '';
+    main.innerHTML = vPerfil(); $('#savebarHost').innerHTML = ''; const yo0 = $('#yoBtn'); if (yo0) yo0.textContent = iniciales(ME.nombre);
     document.querySelectorAll('#nav button').forEach(b => b.classList.remove('on')); pintarSync(); return;
   }
   if (S.view === 'form' && !S.draft) nuevoDraft(CONFIG.CARROS[0], toISO(hoy()));
-  main.innerHTML = { inicio: vInicio, form: vForm, semana: vSemana, admin: vAdmin }[S.view]();
+  main.innerHTML = { inicio: vInicio, form: vForm, semana: vSemana, admin: vAdmin, ver: vDetalle }[S.view]();
+  const yo = $('#yoBtn'); if (yo) yo.textContent = iniciales(ME.nombre);
   if (conservar && S.acc) main.querySelectorAll('details[data-key]').forEach(d => { const k = S.view + d.dataset.key; if (k in S.acc) d.open = S.acc[k]; });
   $('#savebarHost').innerHTML = S.view === 'form' ? savebarHTML() : '';
-  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === S.view));
+  const tab = S.view === 'ver' ? S.prevView : S.view === 'form' && S.draft && S.draft._existe ? S.prevView : S.view;
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === tab));
   hidratarFotos(main);
   pintarSync();
 }
-function ir(view) { S.view = view; S.acc = {}; render(); window.scrollTo(0, 0); }
+function ir(view) { if (view !== 'ver' && view !== 'form') S.prevView = view; S.view = view; S.acc = {}; render(); window.scrollTo(0, 0); }
+function ver(id) { if (S.view !== 'ver' && S.view !== 'form') S.prevView = S.view; S.verId = id; S.view = 'ver'; S.acc = {}; render(); window.scrollTo(0, 0); }
 
 /* ================== FORMULARIO: lógica ================== */
 function nuevoDraft(carro, fecha) {
@@ -737,6 +848,7 @@ function nuevoDraft(carro, fecha) {
 }
 function editar(id) {
   const ex = DB[id]; if (!ex) return;
+  if (!puedeEditar(ex)) { toast('Solo quien registró la inspección puede editarla'); return; }
   const d = JSON.parse(JSON.stringify(ex));
   d.items = d.items || {}; d.obsItems = d.obsItems || {}; d.fotos = d.fotos || {};
   d._existe = true; delete d._pending;
@@ -826,7 +938,7 @@ function guardar() {
   DB[rec.id] = rec; persist();
   toast(d._existe ? 'Cambios guardados' : `Inspección de las ${hora12(rec.hora)} guardada`);
   S.semana = rec.semana; S.carroSemana = rec.carro; S.draft = null; S.dirty = false;
-  ir('semana');
+  ver(rec.id);
   sync();
 }
 function eliminar() {
@@ -836,7 +948,7 @@ function eliminar() {
   rec.eliminado = true; rec.actualizado = new Date().toISOString(); rec._pending = true;
   DB[rec.id] = rec; persist();
   toast('Inspección eliminada');
-  S.draft = null; ir('semana'); sync();
+  S.draft = null; ir(S.prevView || 'inicio'); sync();
 }
 
 /* ================== EXPORTAR ================== */
@@ -940,23 +1052,27 @@ document.addEventListener('click', e => {
   const nav = e.target.closest('[data-nav]');
   if (nav) {
     if (!ME.nombre || !ME.cargo || S.view === 'perfil') return;
-    if (nav.dataset.nav === 'form' && S.view !== 'form') nuevoDraft(CONFIG.CARROS[0], toISO(hoy()));
+    if (S.view === 'form' && S.dirty && !confirm('Tienes una inspección sin guardar. ¿Salir de todas formas?')) return;
+    if (nav.dataset.nav === 'form' && (S.view !== 'form' || (S.draft && S.draft._existe))) nuevoDraft(CONFIG.CARROS[0], toISO(hoy()));
     return ir(nav.dataset.nav);
   }
   const b = e.target.closest('[data-act]'); if (!b) return;
   switch (b.dataset.act) {
     case 'sync': sync(false, true); break;
-    case 'perfil': S.cargoTmp = ME.cargo || ''; S.view = 'perfil'; render(); break;
+    case 'perfil': if (S.view === 'perfil' || !ME.nombre || !ME.cargo) break; if (S.view === 'form' && S.dirty) { toast('Guarda o cancela la inspección primero'); break; } S.prevView = ['inicio', 'semana', 'admin'].includes(S.view) ? S.view : S.prevView; S.cargoTmp = ME.cargo || ''; S.view = 'perfil'; render(); break;
     case 'elegirCargo': S.cargoTmp = b.dataset.v; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
     case 'guardarPerfil': {
       const n = $('#nombreIn').value.trim();
       if (!S.cargoTmp) return toast('Elige tu cargo');
       if (!n) return toast('Escribe tu nombre');
-      ME.nombre = n; ME.cargo = S.cargoTmp; store.set('ig_me', ME); S.view = 'inicio'; render(); break;
+      ME.nombre = n; ME.cargo = S.cargoTmp; store.set('ig_me', ME); ir('inicio'); break;
     }
-    case 'cancelarPerfil': S.view = 'inicio'; render(); break;
+    case 'cancelarPerfil': ir(S.prevView || 'inicio'); break;
     case 'nuevo': nuevoDraft(b.dataset.carro, b.dataset.fecha || toISO(hoy())); ir('form'); break;
     case 'editar': e.preventDefault(); editar(b.dataset.id); break;
+    case 'ver': e.preventDefault(); ver(b.dataset.id); break;
+    case 'volver': ir(S.prevView || 'inicio'); break;
+    case 'cancelarEdicion': { const id = S.draft && S.draft.id; if (S.dirty && !confirm('¿Salir sin guardar los cambios?')) return; S.draft = null; S.dirty = false; ver(id); break; }
     case 'verSemana': S.carroSemana = b.dataset.carro; S.semana = lunesISO(hoy()); ir('semana'); break;
     case 'formCarro': S.draft.carro = b.dataset.v; S.dirty = true; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
     case 'val': setVal(b.dataset.id, b.dataset.v); break;
