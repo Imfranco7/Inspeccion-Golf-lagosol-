@@ -172,8 +172,8 @@ td.fut{background:repeating-linear-gradient(45deg,transparent,transparent 4px,va
        Si se dejan vacíos, la app funciona solo en este celular.
    ADMIN_PIN: PIN para entrar al panel administrador.            */
 const CONFIG = {
-  SUPABASE_URL: '',
-  SUPABASE_KEY: '',
+  SUPABASE_URL: 'https://vqrksycfstdxcxrpeupc.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_Y90l6lncUqF8kN9JDjjfSw_kX8T81jE',
   ADMIN_PIN: '1234',
   CARROS: ['Lencero', 'H5'],
   SEMANAS_SYNC: 12,
@@ -338,8 +338,13 @@ const conectado = () => !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY);
 const sbURL = () => CONFIG.SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/registros';
 const sbHead = extra => ({ apikey: CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json', ...(extra || {}) });
 async function sbError(r) {
-  let m = r.status + '';
-  try { const j = await r.json(); m = j.message || j.error || j.hint || m; } catch (e) {}
+  let m = 'error ' + r.status, code = '';
+  try { const j = await r.json(); m = j.message || j.error || j.hint || m; code = j.code || ''; } catch (e) {}
+  if (code === '42501' || /row-level security/i.test(m)) m = 'La tabla tiene RLS activado. Desactívalo en Supabase.';
+  else if (code === 'PGRST205' || code === '42P01' || r.status === 404) m = 'No existe la tabla "registros" en Supabase.';
+  else if (code === 'PGRST204' || code === '42703') m = 'A la tabla le falta una columna (tipo, semana o datos). ' + m;
+  else if (code === '22P02') m = 'La columna id debe ser de tipo text. ' + m;
+  else if (r.status === 401) m = 'Clave de Supabase no válida.';
   return new Error(m);
 }
 async function sbUpsert(rows) {
