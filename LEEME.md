@@ -11,8 +11,8 @@ Funciona sin internet: guarda en el celular y sincroniza con Supabase (datos y f
 - **Fotos de evidencia** en cualquier ítem (cámara o galería), comprimidas a ~150 KB.
 - Hoja semanal igual al papel: una columna por inspección, agrupadas del Día 1 (lunes) al Día 7 (domingo).
 - Pestaña **Registros**: todos ven todas las inspecciones del equipo (filtro por carro, nombre y novedades), en solo lectura.
-- Panel admin (PIN): días sin registro, ítems en mal estado con fotos, exportar Excel / PDF.
-- Cada inspección se abre en modo lectura; solo quien la registró (o un administrador con el PIN) puede editarla o eliminarla.
+- Panel admin (clave `admin123`): días sin registro, ítems en mal estado con fotos, exportar Excel / PDF.
+- Cada inspección se abre en modo lectura; solo quien la registró (o un administrador con la clave) puede editarla o eliminarla.
 
 ## Archivos
 | Archivo | Qué es |
@@ -44,5 +44,5 @@ La primera vez cada persona elige su cargo y escribe su nombre.
 - El indicador arriba a la derecha muestra si hay inspecciones o fotos pendientes por enviar. Tocarlo fuerza la sincronización.
 - Supabase pausa los proyectos gratis tras 7 días sin uso; con uso diario no pasa. Si se pausa, se reactiva desde supabase.com.
 - La clave publishable va dentro de la app: cualquiera con el link podría leer o escribir la tabla. Es aceptable para uso interno; no guardes datos sensibles.
-- El PIN de admin es un candado de pantalla, no seguridad real.
+- La clave de admin es un candado de pantalla, no seguridad real. Se cambia en `ADMIN_PIN` dentro de `index.html`.
 - Si actualizas la app, sube el número de `CACHE` en `sw.js` (v2 → v3) para que los celulares tomen la versión nueva.

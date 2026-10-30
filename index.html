@@ -303,7 +303,7 @@ ul.res em.vB{background:var(--ok-soft);color:var(--ok)} ul.res em.vM{background:
 const CONFIG = {
   SUPABASE_URL: 'https://vqrksycfstdxcxrpeupc.supabase.co',
   SUPABASE_KEY: 'sb_publishable_Y90l6lncUqF8kN9JDjjfSw_kX8T81jE',
-  ADMIN_PIN: '1234',
+  ADMIN_PIN: 'admin123',
   CARROS: ['Lencero', 'H5'],
   SEMANAS_SYNC: 12,
   FOTO_MAX: 1280,       // lado mayor de la foto en píxeles
@@ -807,8 +807,8 @@ function vSemana() {
 /* ---------- Admin ---------- */
 function vAdmin() {
   if (!S.admin) return `<div class="card stack" style="margin-top:8px">
-    <div><h1>Panel administrador</h1><p class="small muted" style="margin:4px 0 0">Ingresa el PIN para ver el resumen y exportar.</p></div>
-    <input class="t pin" id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="PIN">
+    <div><h1>Panel administrador</h1><p class="small muted" style="margin:4px 0 0">Ingresa la clave de administrador para ver el resumen y exportar.</p></div>
+    <input class="t" id="pinIn" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Clave de administrador" placeholder="Clave">
     <button class="btn" data-act="pin">Entrar</button></div>`;
   const f = fechasSemana(S.semana), h = toISO(hoy());
   const pasados = f.filter(x => x <= h);
@@ -827,7 +827,7 @@ function vAdmin() {
     return `<div class="card stack" style="gap:10px"><h2>${esc(c)}</h2>
       <div class="kpi"><b>${n}/${pasados.length}</b><span>días con registro</span></div>
       <div class="xs muted">${plural(rs.length, 'inspección', 'inspecciones')} · <span style="color:${rs.some(tieneM) ? 'var(--bad)' : 'inherit'}">${rs.filter(tieneM).length} con novedades</span></div>
-      ${semanaMini(c, S.semana)}</div>`;
+      ${tiraDias(c, S.semana)}</div>`;
   }).join('')}</div>
   ${acc('nov', `Ítems en mal estado (${novedades.length})`, novedades.length ? 'Con detalle y fotos' : 'Ninguno esta semana',
     novedades.length ? novedades.map(n => `<div class="li tap" data-act="ver" data-id="${esc(n.r.id)}" style="align-items:flex-start;flex-direction:column;gap:4px">
@@ -1137,8 +1137,8 @@ document.addEventListener('click', e => {
     case 'fCarro': S.fCarro = b.dataset.v; render(true); break;
     case 'fNov': S.fNov = !S.fNov; render(true); break;
     case 'pin': {
-      if ($('#pinIn').value === CONFIG.ADMIN_PIN) { S.admin = true; sessionStorage.setItem('ig_admin', '1'); render(); }
-      else { toast('PIN incorrecto'); $('#pinIn').value = ''; } break;
+      if ($('#pinIn').value.trim().toLowerCase() === CONFIG.ADMIN_PIN.toLowerCase()) { S.admin = true; sessionStorage.setItem('ig_admin', '1'); render(); }
+      else { toast('Clave incorrecta'); $('#pinIn').value = ''; } break;
     }
     case 'lock': S.admin = false; sessionStorage.removeItem('ig_admin'); render(); break;
     case 'xlsSemana': xlsSemana(); break;
