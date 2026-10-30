@@ -246,6 +246,8 @@ ul.res li{display:flex;align-items:center;justify-content:space-between;gap:12px
 ul.res li:first-child{border-top:0}
 ul.res li>span{display:grid;gap:6px;min-width:0}
 ul.res small{font-size:12px;color:var(--muted)}
+ul.res small.det-m{font-size:13px;color:var(--bad)}
+ul.res li.es-m>span{font-weight:600}
 ul.res em{font-style:normal;font-weight:700;font-size:12px;min-width:38px;text-align:center;padding:4px 0;border-radius:6px}
 ul.res em.vB{background:var(--ok-soft);color:var(--ok)} ul.res em.vM{background:var(--bad);color:#fff} ul.res em.vNA{background:var(--na-soft);color:var(--na)}
 .filtros{display:grid;gap:8px}
@@ -649,16 +651,14 @@ function vDetalle() {
     <div class="bad"><b>${cuenta.M}</b><span>Malo</span></div>
     <div class="na"><b>${cuenta.NA}</b><span>No aplica</span></div>
   </div>
-  ${nov.length ? `<section class="card novs"><h2>Ítems en mal estado</h2>${nov.map(([id, lab]) => `<div class="nov">
-      <b>${esc(lab)}</b>${r.obsItems && r.obsItems[id] ? `<p>${esc(r.obsItems[id])}</p>` : '<p class="muted">Sin descripción</p>'}
-      ${fotosDe(id) ? `<div class="fotos">${fotosDe(id)}</div>` : ''}</div>`).join('')}</section>` : ''}
   ${r.obs ? `<section class="card"><h2>Observaciones</h2><p class="obs-txt">${esc(r.obs)}</p></section>` : ''}
   ${SECCIONES.map((s, i) => {
     const m = s.items.filter(([id]) => r.items[id] === 'M').length;
     return acc('d' + i, `${i + 1}. ${s.t}`, m ? plural(m, 'novedad', 'novedades') : 'Todo en orden', `<ul class="res">${s.items.map(([id, lab]) => {
       const v = r.items[id] || '';
-      return `<li><span>${esc(lab)}${id === 'desinfeccion' ? `<small>Realizada: ${[r.desinfAM && 'AM', r.desinfPM && 'PM'].filter(Boolean).join(' y ') || 'no marcada'}</small>` : ''}${v !== 'M' && fotosDe(id) ? `<span class="fotos">${fotosDe(id)}</span>` : ''}</span><em class="v${v}">${v === 'NA' ? 'N/A' : v || '—'}</em></li>`;
-    }).join('')}</ul>`, false);
+      const det = v === 'M' && r.obsItems && r.obsItems[id] ? `<small class="det-m">${esc(r.obsItems[id])}</small>` : '';
+      return `<li class="${v === 'M' ? 'es-m' : ''}"><span>${esc(lab)}${det}${id === 'desinfeccion' ? `<small>Realizada: ${[r.desinfAM && 'AM', r.desinfPM && 'PM'].filter(Boolean).join(' y ') || 'no marcada'}</small>` : ''}${fotosDe(id) ? `<span class="fotos">${fotosDe(id)}</span>` : ''}</span><em class="v${v}">${v === 'NA' ? 'N/A' : v || '—'}</em></li>`;
+    }).join('')}</ul>`, m > 0);
   }).join('')}
   ${editable ? `<button class="btn" data-act="editar" data-id="${esc(r.id)}">Editar inspección</button>`
     : `<p class="note">Solo ${esc(r.camarero)} puede editar esta inspección desde su celular, o un administrador desde el panel.</p>`}`;
