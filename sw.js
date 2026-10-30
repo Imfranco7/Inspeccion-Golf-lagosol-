@@ -1,5 +1,5 @@
 // Service worker: permite abrir y usar la app sin internet.
-const CACHE = 'insp-golf-v7';
+const CACHE = 'insp-golf-v8';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

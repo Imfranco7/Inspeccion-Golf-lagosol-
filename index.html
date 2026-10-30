@@ -48,7 +48,7 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 
 /* Navegación inferior */
 nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;padding:4px max(6px,env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
-nav.bottom button{flex:1;background:none;border:0;padding:7px 0 5px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)}
+nav.bottom button{flex:1;min-width:0;background:none;border:0;padding:7px 0 5px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)}
 nav.bottom svg{width:22px;height:22px}
 nav.bottom button.on{color:var(--brand);font-weight:600}
 
@@ -248,6 +248,8 @@ ul.res li>span{display:grid;gap:6px;min-width:0}
 ul.res small{font-size:12px;color:var(--muted)}
 ul.res em{font-style:normal;font-weight:700;font-size:12px;min-width:38px;text-align:center;padding:4px 0;border-radius:6px}
 ul.res em.vB{background:var(--ok-soft);color:var(--ok)} ul.res em.vM{background:var(--bad);color:#fff} ul.res em.vNA{background:var(--na-soft);color:var(--na)}
+.filtros{display:grid;gap:8px}
+.filtros .row input{flex:1;min-width:0}
 .toast{position:fixed;left:50%;bottom:calc(130px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:#1b2530;color:#fff;padding:10px 16px;border-radius:var(--r-sm);font-size:14px;opacity:0;transition:.2s;z-index:60;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .pin{font-size:24px;letter-spacing:10px;text-align:center}
@@ -283,6 +285,7 @@ ul.res em.vB{background:var(--ok-soft);color:var(--ok)} ul.res em.vM{background:
 <nav class="bottom" id="nav">
   <button data-nav="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/></svg>Inicio</button>
   <button data-nav="form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M12 10v6M9 13h6"/></svg>Nueva</button>
+  <button data-nav="registros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Registros</button>
   <button data-nav="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Semana</button>
   <button data-nav="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Admin</button>
 </nav>
@@ -439,6 +442,7 @@ const S = {
   verId: null,
   semana: lunesISO(hoy()),
   carroSemana: CONFIG.CARROS[0],
+  fCarro: 'Todos', fNov: false, fTexto: '',
   draft: null,
   dirty: false,
   abiertas: new Set([0]),
@@ -751,6 +755,40 @@ function tablaSemana(carro, lunes) {
   html += `<tr class="sec"><td colspan="${span}">Responsable</td></tr><tr><td class="desc">Iniciales</td>${cols.map(c => c.r ? `<td class="xs" title="${esc(quien(c.r))}">${esc(iniciales(c.r.camarero))}</td>` : vacia(c)).join('')}</tr>`;
   return html + `</tbody></table></div>`;
 }
+/* ---------- Registros: todos ven todo, solo lectura ---------- */
+function listaRegistros() {
+  const q = S.fTexto.trim().toLowerCase();
+  const recs = recsSemana(S.semana)
+    .filter(r => S.fCarro === 'Todos' || r.carro === S.fCarro)
+    .filter(r => !S.fNov || tieneM(r))
+    .filter(r => !q || `${r.camarero} ${r.cargo || ''}`.toLowerCase().includes(q))
+    .reverse();
+  const porDia = {};
+  recs.forEach(r => (porDia[r.fecha] = porDia[r.fecha] || []).push(r));
+  const totalSem = recsSemana(S.semana).length;
+  const fila = r => `<button class="li tap" data-act="ver" data-id="${esc(r.id)}">
+    <span class="h">${esc(r.hora || '—')}</span>
+    <span class="n"><b>Carro ${esc(r.carro)}</b><span>${esc(r.camarero)}${r.cargo ? ', ' + esc(r.cargo) : ''}${nFotos(r) ? ` · ${plural(nFotos(r), 'foto', 'fotos')}` : ''}${puedeEditar(r) ? ' · tuya' : ''}</span></span>
+    ${estadoChip(r)}${ICO_CHEV}</button>`;
+  return recs.length ? Object.keys(porDia).map(f => `<section class="card lista">
+      <h2>${DIAS[diaNum(parseISO(f)) - 1]} ${fmtC(f)} <span class="xs muted" style="font-weight:400">· Día ${diaNum(parseISO(f))} · ${plural(porDia[f].length, 'inspección', 'inspecciones')}</span></h2>
+      ${porDia[f].map(fila).join('')}</section>`).join('')
+    : `<section class="card"><p class="empty">${totalSem ? 'Ninguna inspección coincide con los filtros.' : 'No hay inspecciones registradas en esta semana.'}</p></section>`;
+}
+function vRegistros() {
+  return `<h1>Registros</h1>
+  <p class="small muted" style="margin:-6px 0 0">Todas las inspecciones del equipo. Toca una para ver el detalle.</p>
+  ${weekNav()}
+  <div class="filtros">
+    ${segc(['Todos', ...CONFIG.CARROS], S.fCarro, 'fCarro')}
+    <div class="row">
+      <input class="t" id="fTexto" type="search" placeholder="Buscar por nombre o cargo" value="${esc(S.fTexto)}" aria-label="Buscar por nombre o cargo" autocomplete="off">
+      <button type="button" class="tog${S.fNov ? ' on' : ''}" data-act="fNov" style="white-space:nowrap;padding:10px 12px">Con novedades</button>
+    </div>
+  </div>
+  <div id="regLista" class="stack">${listaRegistros()}</div>`;
+}
+
 function vSemana() {
   const recs = recsSemana(S.semana, S.carroSemana).reverse();
   return `<h1>Semana</h1>
@@ -824,7 +862,7 @@ function render(conservar) {
     document.querySelectorAll('#nav button').forEach(b => b.classList.remove('on')); pintarSync(); return;
   }
   if (S.view === 'form' && !S.draft) nuevoDraft(CONFIG.CARROS[0], toISO(hoy()));
-  main.innerHTML = { inicio: vInicio, form: vForm, semana: vSemana, admin: vAdmin, ver: vDetalle }[S.view]();
+  main.innerHTML = { inicio: vInicio, form: vForm, semana: vSemana, admin: vAdmin, ver: vDetalle, registros: vRegistros }[S.view]();
   const yo = $('#yoBtn'); if (yo) yo.textContent = iniciales(ME.nombre);
   if (conservar && S.acc) main.querySelectorAll('details[data-key]').forEach(d => { const k = S.view + d.dataset.key; if (k in S.acc) d.open = S.acc[k]; });
   $('#savebarHost').innerHTML = S.view === 'form' ? savebarHTML() : '';
@@ -833,7 +871,7 @@ function render(conservar) {
   hidratarFotos(main);
   pintarSync();
 }
-function ir(view) { if (view !== 'ver' && view !== 'form') S.prevView = view; S.view = view; S.acc = {}; render(); window.scrollTo(0, 0); }
+function ir(view) { if (view !== 'ver' && view !== 'form') S.prevView = view; S.view = view; S.acc = {}; render(); window.scrollTo(0, 0); if (view === 'registros' || view === 'semana' || view === 'inicio') sync(); }
 function ver(id) { if (S.view !== 'ver' && S.view !== 'form') S.prevView = S.view; S.verId = id; S.view = 'ver'; S.acc = {}; render(); window.scrollTo(0, 0); }
 
 /* ================== FORMULARIO: lógica ================== */
@@ -1096,6 +1134,8 @@ document.addEventListener('click', e => {
     case 'semPrev': S.semana = toISO(addDays(parseISO(S.semana), -7)); render(true); break;
     case 'semNext': if (S.semana < lunesISO(hoy())) { S.semana = toISO(addDays(parseISO(S.semana), 7)); render(true); } break;
     case 'semCarro': S.carroSemana = b.dataset.v; render(true); break;
+    case 'fCarro': S.fCarro = b.dataset.v; render(true); break;
+    case 'fNov': S.fNov = !S.fNov; render(true); break;
     case 'pin': {
       if ($('#pinIn').value === CONFIG.ADMIN_PIN) { S.admin = true; sessionStorage.setItem('ig_admin', '1'); render(); }
       else { toast('PIN incorrecto'); $('#pinIn').value = ''; } break;
@@ -1113,6 +1153,7 @@ document.addEventListener('toggle', e => {
 }, true);
 document.addEventListener('input', e => {
   const t = e.target;
+  if (t.id === 'fTexto') { S.fTexto = t.value; const l = $('#regLista'); if (l) { l.innerHTML = listaRegistros(); } return; }
   if (!S.draft) return;
   if (t.dataset.field) { S.draft[t.dataset.field] = t.value; S.dirty = true; }
   if (t.dataset.obs) { S.draft.obsItems[t.dataset.obs] = t.value; S.dirty = true; }

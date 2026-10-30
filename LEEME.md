@@ -10,6 +10,7 @@ Funciona sin internet: guarda en el celular y sincroniza con Supabase (datos y f
 - El nombre y el cargo se registran una vez en cada celular y se usan en todas las inspecciones.
 - **Fotos de evidencia** en cualquier ítem (cámara o galería), comprimidas a ~150 KB.
 - Hoja semanal igual al papel: una columna por inspección, agrupadas del Día 1 (lunes) al Día 7 (domingo).
+- Pestaña **Registros**: todos ven todas las inspecciones del equipo (filtro por carro, nombre y novedades), en solo lectura.
 - Panel admin (PIN): días sin registro, ítems en mal estado con fotos, exportar Excel / PDF.
 - Cada inspección se abre en modo lectura; solo quien la registró (o un administrador con el PIN) puede editarla o eliminarla.
 
